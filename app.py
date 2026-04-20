@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import glob
 
 # --- LOGICA GUIDA ---
 def mostra_guida():
@@ -13,7 +14,7 @@ def mostra_guida():
         """)
 
 # --- CONFIGURAZIONE LOGIN ---
-UTENTI_VALIDI = {"AZIENDA_001": "pass123", "AZIENDA_002": "sicurezza456"}
+UTENTI_VALIDI = {"AZIENDA_001": "pass123", "AZIENDA_002": "sicurezza456", "ADMIN_PRINCIPALE": "admin_super"}
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
 
 if 'logged_in' not in st.session_state: 
@@ -32,44 +33,73 @@ if not st.session_state.logged_in:
             st.error("Credenziali errate!")
 else:
     azienda = st.session_state.user
-    st.title(f"📊 Dashboard - {azienda}")
-    mostra_guida() 
     
-    user_folder = f"uploads/{azienda}"
-    if not os.path.exists(user_folder): 
-        os.makedirs(user_folder)
-    
-    last_file_path = os.path.join(user_folder, "last_file.txt")
-    uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
-    
-    target_file = uploaded_file if uploaded_file else None
-    
-    if uploaded_file is None and os.path.exists(last_file_path):
-        with open(last_file_path, "r") as f:
-            filename = f.read()
-            old_path = os.path.join(user_folder, filename)
-            if os.path.exists(old_path):
-                st.info(f"Stai visualizzando l'ultimo file caricato: {filename}")
-                target_file = open(old_path, "rb")
-
-    if target_file:
-        df = pd.read_csv(target_file)
-        st.dataframe(df)
+    # --- LOGICA ADMIN ---
+    if azienda == "ADMIN_PRINCIPALE":
+        st.title("🛡️ Centrale di Controllo Admin")
         
-        if uploaded_file:
-            with open(last_file_path, "w") as f: 
-                f.write(uploaded_file.name)
-            with open(os.path.join(user_folder, uploaded_file.name), "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-    # --- MODULO FEEDBACK (SEMPRE VISIBILE) ---
-    st.divider()
-    st.subheader("📩 Hai bisogno di un adeguamento?")
-    with st.form("form_feedback"):
-        richiesta = st.text_area("Descrivi l'aggiunta o la modifica necessaria per il tuo settore:")
-        submit_button = st.form_submit_button("Invia richiesta")
+        # Lettura richieste
+        if st.button("Leggi tutte le richieste"):
+            if os.path.exists("richieste_clienti.txt"):
+                with open("richieste_clienti.txt", "r") as f:
+                    st.text(f.read())
         
-        if submit_button:
-            with open("richieste_clienti.txt", "a") as f:
-                f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
-            st.success("Richiesta inviata correttamente! Ti contatteremo per l'implementazione.")
+        # Aggregazione anonima dei dati di test
+        if st.button("Genera Master Data Anonimo"):
+            all_files = glob.glob("uploads/*/*.csv")
+            df_list = []
+            for filename in all_files:
+                temp_df = pd.read_csv(filename)
+                df_list.append(temp_df)
+            
+            if df_list:
+                master_df = pd.concat(df_list, ignore_index=True)
+                master_df.to_csv("master_test_data.csv", index=False)
+                st.success("File master_test_data.csv generato con successo!")
+                st.dataframe(master_df.head())
+            else:
+                st.warning("Nessun file CSV trovato negli upload.")
+                
+    else:
+        # --- DASHBOARD AZIENDA ---
+        st.title(f"📊 Dashboard - {azienda}")
+        mostra_guida() 
+        
+        user_folder = f"uploads/{azienda}"
+        if not os.path.exists(user_folder): 
+            os.makedirs(user_folder)
+        
+        last_file_path = os.path.join(user_folder, "last_file.txt")
+        uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
+        
+        target_file = uploaded_file if uploaded_file else None
+        
+        if uploaded_file is None and os.path.exists(last_file_path):
+            with open(last_file_path, "r") as f:
+                filename = f.read()
+                old_path = os.path.join(user_folder, filename)
+                if os.path.exists(old_path):
+                    st.info(f"Stai visualizzando l'ultimo file caricato: {filename}")
+                    target_file = open(old_path, "rb")
+
+        if target_file:
+            df = pd.read_csv(target_file)
+            st.dataframe(df)
+            
+            if uploaded_file:
+                with open(last_file_path, "w") as f: 
+                    f.write(uploaded_file.name)
+                with open(os.path.join(user_folder, uploaded_file.name), "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+        # --- MODULO FEEDBACK ---
+        st.divider()
+        st.subheader("📩 Hai bisogno di un adeguamento?")
+        with st.form("form_feedback"):
+            richiesta = st.text_area("Descrivi l'aggiunta o la modifica necessaria per il tuo settore:")
+            submit_button = st.form_submit_button("Invia richiesta")
+            
+            if submit_button:
+                with open("richieste_clienti.txt", "a") as f:
+                    f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
+                st.success("Richiesta inviata correttamente! Ti contatteremo per l'implementazione.")
