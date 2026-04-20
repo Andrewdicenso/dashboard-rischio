@@ -4,12 +4,12 @@ import os
 
 # --- LOGICA GUIDA ---
 def mostra_guida():
-    with st.expander("📖 Guida rapida al funzionamento"):
+    with st.expander("📖 Guida operativa"):
         st.write("""
-        1. **Carica Dati**: Trascina il tuo file CSV nell'area sottostante.
-        2. **Analisi**: Il sistema leggerà automaticamente le tue colonne.
-        3. **Esportazione**: Puoi scaricare il report in qualsiasi momento.
-        *Se hai bisogno di modifiche per il tuo settore, contattami!*
+        Benvenuto nella tua area di analisi strategica. 
+        1. **Carica Dati**: Trascina il file CSV con i tuoi dati correnti.
+        2. **Analisi**: Il sistema elaborerà i dati in tempo reale.
+        3. **Ottimizzazione**: Usa il modulo feedback qui sotto per richiedere nuovi parametri o funzionalità specifiche per il tuo settore.
         """)
 
 # --- CONFIGURAZIONE LOGIN ---
@@ -52,6 +52,18 @@ else:
     if target_file:
         df = pd.read_csv(target_file)
         st.dataframe(df)
+        st.divider()
+        st.subheader("📩 Hai bisogno di un adeguamento?")
+        with st.form("form_feedback"):
+            richiesta = st.text_area("Descrivi l'aggiunta o la modifica necessaria per il tuo settore:")
+            submit_button = st.form_submit_button("Invia richiesta")
+            
+            if submit_button:
+                with open("richieste_clienti.txt", "a") as f:
+                    f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
+                st.success("Richiesta inviata correttamente! Ti contatteremo per l'implementazione.")
+        # --- FINE MODULO ---
+        
         if uploaded_file:
             with open(last_file_path, "w") as f: f.write(uploaded_file.name)
             # Salva fisicamente il file
