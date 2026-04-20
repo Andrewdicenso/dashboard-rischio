@@ -3,18 +3,12 @@ import sqlite3
 import pandas as pd
 import os
 
-# --- CONFIGURAZIONE LOGIN ---
-UTENTI_VALIDI = {
-    "AZIENDA_001": "pass123",
-    "AZIENDA_002": "sicurezza456"
-}
-
+# --- CONFIGURAZIONE ---
+UTENTI_VALIDI = {"AZIENDA_001": "pass123", "AZIENDA_002": "sicurezza456"}
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
 
-# --- LOGICA DI LOGIN ---
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
+# --- LOGICA LOGIN ---
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if not st.session_state.logged_in:
     st.title("🔒 Accesso Area Riservata")
     user = st.text_input("ID Azienda")
@@ -24,50 +18,39 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.user = user
             st.rerun()
-        else:
-            st.error("Credenziali errate!")
+        else: st.error("Credenziali errate!")
 else:
-    # --- AREA RISERVATA ---
     azienda = st.session_state.user
     st.title(f"📊 Dashboard Strategica - {azienda}")
+    if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
 
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
-    # --- NUOVA FUNZIONE UPLOAD ---
-    st.subheader("Carica nuovo documento")
-    uploaded_file = st.file_uploader("Scegli un file CSV", type="csv")
+    # --- UPLOAD INTELLIGENTE ---
+    st.subheader("Carica Documenti")
+    uploaded_file = st.file_uploader("Trascina qui i tuoi documenti (CSV, PNG, JPG, PDF)")
     
     if uploaded_file is not None:
-        # Crea cartella uploads se non esiste
-        if not os.path.exists("uploads"):
-            os.makedirs("uploads")
-        
-        # Salva il file rinominandolo per l'azienda
+        if not os.path.exists("uploads"): os.makedirs("uploads")
         file_path = os.path.join("uploads", f"{azienda}_{uploaded_file.name}")
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.success(f"File {uploaded_file.name} caricato con successo!")
+        
+        # Logica di smistamento
+        if uploaded_file.name.endswith('.csv'):
+            with open(file_path, "wb") as f: f.write(uploaded_file.getbuffer())
+            st.success(f"Dati caricati: {uploaded_file.name}")
+            # Qui potremmo aggiungere la logica per fondere i dati in futuro
+        elif uploaded_file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.pdf')):
+            with open(file_path, "wb") as f: f.write(uploaded_file.getbuffer())
+            st.info(f"Documento informativo archiviato: {uploaded_file.name}")
+        else:
+            st.warning(f"Formato non riconosciuto come documento necessario: {uploaded_file.name}")
 
-    # --- CONNESSIONE DB ---
+    # --- VISUALIZZAZIONE DATI ---
     conn = sqlite3.connect("azienda.db", check_same_thread=False)
     query = f"SELECT nome, rischio, data_inserimento FROM asset WHERE company_id = '{azienda}'"
     df = pd.read_sql_query(query, conn)
 
     if not df.empty:
         st.table(df)
-
-        # --- FUNZIONE ESPORTAZIONE REPORT ---
         csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Scarica Report in CSV",
-            data=csv,
-            file_name=f'report_{azienda}_{pd.Timestamp.now().strftime("%Y%m%d")}.csv',
-            mime='text/csv',
-        )
-
-        # --- GRAFICO ---
+        st.download_button("📥 Scarica Report", data=csv, file_name=f'report_{azienda}.csv', mime='text/csv')
         st.bar_chart(df.set_index('nome')['rischio'])
-    else:
-        st.info("Nessun dato storico per questa azienda.")
+    else: st.info("Nessun dato storico nel database.")
