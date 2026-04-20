@@ -1,0 +1,20 @@
+
+--- REPORT CRITICO: 2026-04-20 07:33:15.023562 ---
+ALLERTA: L'asset 'Trasporti Rapidi' presenta un rischio critico di 6.
+ALLERTA: L'asset 'Negozio Locale' presenta un rischio critico di 8.
+
+--- REPORT CRITICO: 2026-04-20 07:35:22.473784 ---
+ALLERTA: L'asset 'Trasporti Rapidi' presenta un rischio critico di 6.
+ALLERTA: L'asset 'Negozio Locale' presenta un rischio critico di 8.
+
+--- REPORT CRITICO: 2026-04-20 07:51:32.606166 ---
+ALLERTA: L'asset 'Trasporti Rapidi' presenta un rischio critico di 6.
+ALLERTA: L'asset 'Negozio Locale' presenta un rischio critico di 8.
+
+--- REPORT CRITICO: 2026-04-20 08:02:13.237622 ---
+ALLERTA: L'asset 'Trasporti Rapidi' presenta un rischio critico di 6.
+ALLERTA: L'asset 'Negozio Locale' presenta un rischio critico di 8.
+
+--- REPORT CRITICO: 2026-04-20 08:19:17.855821 ---
+ALLERTA: L'asset 'Trasporti Rapidi' presenta un rischio critico di Partner Critico: Cercare alternative.
+ALLERTA: L'asset 'Fornitore Acciaio' presenta un rischio critico di Partner Strategico: Da blindare.
