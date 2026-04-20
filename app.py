@@ -16,7 +16,8 @@ def mostra_guida():
 UTENTI_VALIDI = {"AZIENDA_001": "pass123", "AZIENDA_002": "sicurezza456"}
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
 
-if 'logged_in' not in st.session_state: st.session_state.logged_in = False
+if 'logged_in' not in st.session_state: 
+    st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
     st.title("🔒 Accesso Area Riservata")
@@ -27,14 +28,16 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.user = user
             st.rerun()
-        else: st.error("Credenziali errate!")
+        else: 
+            st.error("Credenziali errate!")
 else:
     azienda = st.session_state.user
     st.title(f"📊 Dashboard - {azienda}")
     mostra_guida() 
     
     user_folder = f"uploads/{azienda}"
-    if not os.path.exists(user_folder): os.makedirs(user_folder)
+    if not os.path.exists(user_folder): 
+        os.makedirs(user_folder)
     
     last_file_path = os.path.join(user_folder, "last_file.txt")
     uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
@@ -52,20 +55,21 @@ else:
     if target_file:
         df = pd.read_csv(target_file)
         st.dataframe(df)
-        st.divider()
-        st.subheader("📩 Hai bisogno di un adeguamento?")
-        with st.form("form_feedback"):
-            richiesta = st.text_area("Descrivi l'aggiunta o la modifica necessaria per il tuo settore:")
-            submit_button = st.form_submit_button("Invia richiesta")
-            
-            if submit_button:
-                with open("richieste_clienti.txt", "a") as f:
-                    f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
-                st.success("Richiesta inviata correttamente! Ti contatteremo per l'implementazione.")
-        # --- FINE MODULO ---
         
         if uploaded_file:
-            with open(last_file_path, "w") as f: f.write(uploaded_file.name)
-            # Salva fisicamente il file
+            with open(last_file_path, "w") as f: 
+                f.write(uploaded_file.name)
             with open(os.path.join(user_folder, uploaded_file.name), "wb") as f:
                 f.write(uploaded_file.getbuffer())
+
+    # --- MODULO FEEDBACK (SEMPRE VISIBILE) ---
+    st.divider()
+    st.subheader("📩 Hai bisogno di un adeguamento?")
+    with st.form("form_feedback"):
+        richiesta = st.text_area("Descrivi l'aggiunta o la modifica necessaria per il tuo settore:")
+        submit_button = st.form_submit_button("Invia richiesta")
+        
+        if submit_button:
+            with open("richieste_clienti.txt", "a") as f:
+                f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
+            st.success("Richiesta inviata correttamente! Ti contatteremo per l'implementazione.")
