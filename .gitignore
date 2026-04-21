@@ -1,5 +1,4 @@
 *.db
-data/uploads/
 *.txt
 __pycache__/
 .env
