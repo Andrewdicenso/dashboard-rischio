@@ -1,18 +1,22 @@
 import streamlit as st
 import pandas as pd
 import os
+from pathlib import Path
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
 
-# Percorsi aggiornati alla nuova struttura
-LOG_CANDIDATURE = "data/logs/richieste_candidature.txt"
-LOG_FEEDBACK = "data/logs/richieste_clienti.txt"
-UPLOAD_DIR = "data/uploads"
+# Utilizziamo Path per una gestione del file system cross-platform e sicura
+LOG_DIR = Path("data/logs")
+UPLOAD_DIR = Path("data/uploads")
 
-# Assicurati che le cartelle esistano
-os.makedirs("data/logs", exist_ok=True)
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Creazione sicura delle directory: exist_ok=True evita l'errore se la cartella esiste già
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Definiamo i file path usando Path
+LOG_CANDIDATURE = LOG_DIR / "richieste_candidature.txt"
+LOG_FEEDBACK = LOG_DIR / "richieste_clienti.txt"
 
 # --- LOGICA GUIDA ---
 def mostra_guida():
@@ -79,12 +83,12 @@ else:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Leggi richieste accesso"):
-                if os.path.exists(LOG_CANDIDATURE):
+                if LOG_CANDIDATURE.exists():
                     with open(LOG_CANDIDATURE, "r") as f:
                         st.text(f.read())
         with col2:
             if st.button("Leggi feedback adeguamento"):
-                if os.path.exists(LOG_FEEDBACK):
+                if LOG_FEEDBACK.exists():
                     with open(LOG_FEEDBACK, "r") as f:
                         st.text(f.read())
     
@@ -93,13 +97,15 @@ else:
         st.title(f"📊 Dashboard - {azienda}")
         mostra_guida() 
         
-        user_folder = os.path.join(UPLOAD_DIR, azienda)
-        if not os.path.exists(user_folder): os.makedirs(user_folder)
+        user_folder = UPLOAD_DIR / azienda
+        user_folder.mkdir(parents=True, exist_ok=True)
         
         uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
         
         if uploaded_file:
-            with open(os.path.join(user_folder, uploaded_file.name), "wb") as f:
+            # Salvataggio file con Path
+            file_path = user_folder / uploaded_file.name
+            with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             df = pd.read_csv(uploaded_file)
             st.dataframe(df)
