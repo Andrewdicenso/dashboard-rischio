@@ -2,19 +2,19 @@ import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
+# Import delle classi di logica
+from core.ingestor import IngestorStrategico
+from core.engine import DataGateway
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
 
-# Utilizziamo Path per una gestione del file system cross-platform e sicura
 LOG_DIR = Path("data/logs")
 UPLOAD_DIR = Path("data/uploads")
 
-# Creazione sicura delle directory: exist_ok=True evita l'errore se la cartella esiste già
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Definiamo i file path usando Path
 LOG_CANDIDATURE = LOG_DIR / "richieste_candidature.txt"
 LOG_FEEDBACK = LOG_DIR / "richieste_clienti.txt"
 
@@ -23,16 +23,16 @@ def mostra_guida():
     with st.expander("📖 Guida operativa"):
         st.write("""
         Benvenuto nella tua area di analisi strategica. 
-        1. **Carica Dati**: Trascina il file CSV con i tuoi dati correnti.
-        2. **Analisi**: Il sistema elaborerà i dati in tempo reale.
-        3. **Ottimizzazione**: Usa il modulo feedback qui sotto per richiedere nuovi parametri o funzionalità specifiche per il tuo settore.
+        1. **Seleziona Contesto**: Indica al sistema cosa stai caricando (Magazzino, Fornitori, ecc.).
+        2. **Carica Dati**: Trascina il file CSV.
+        3. **Analisi**: Il Protocollo RGD-Alpha elaborerà i dati secondo le specifiche del contesto selezionato.
         """)
 
 # --- STATO SESSIONE ---
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- LOGICA DI ACCESSO E CANDIDATURA ---
+# --- LOGICA DI ACCESSO ---
 if not st.session_state.logged_in:
     tab1, tab2 = st.tabs(["🔒 Login Area Riservata", "📩 Richiedi Accreditamento"])
     
@@ -51,28 +51,17 @@ if not st.session_state.logged_in:
 
     with tab2:
         st.subheader("Richiesta di Accreditamento War Room")
-        st.markdown("*RGandja | Intelligence Operativa*\n\nL'accesso alla War Room è riservato esclusivamente ad aziende selezionate.")
-        
         with st.form("richiesta_accesso_form"):
             nome_azienda = st.text_input("Nome Azienda")
-            sito_web = st.text_input("Sito Web Aziendale")
-            referente = st.text_input("Referente Tecnico")
             email_aziendale = st.text_input("Email Aziendale")
-            note = st.text_area("Breve descrizione dell'esigenza (opzionale)")
-            submit_button = st.form_submit_button("Invia Candidatura")
-            
-            if submit_button:
+            if st.form_submit_button("Invia Candidatura"):
                 if nome_azienda and email_aziendale:
                     with open(LOG_CANDIDATURE, "a") as f:
-                        f.write(f"Azienda: {nome_azienda} | Sito: {sito_web} | Ref: {referente} | Email: {email_aziendale} | Note: {note}\n")
+                        f.write(f"Azienda: {nome_azienda} | Email: {email_aziendale}\n")
                     st.success("Candidatura inviata!")
-                else:
-                    st.error("Per favore, compila almeno il Nome Azienda e l'Email.")
 
 else:
-    # --- DASHBOARD LOGGATA ---
     azienda = st.session_state.user
-    
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
@@ -92,23 +81,47 @@ else:
                     with open(LOG_FEEDBACK, "r") as f:
                         st.text(f.read())
     
-    # --- DASHBOARD AZIENDA ---
+    # --- DASHBOARD AZIENDA (CON CONTESTO E ANALISI) ---
     else:
         st.title(f"📊 Dashboard - {azienda}")
         mostra_guida() 
         
-        user_folder = UPLOAD_DIR / azienda
-        user_folder.mkdir(parents=True, exist_ok=True)
+        contesto = st.selectbox("Seleziona il contesto dell'analisi:", 
+                                ["Magazzino", "Fornitori", "Performance Vendite"])
         
-        uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
+        user_context_folder = UPLOAD_DIR / azienda / contesto
+        user_context_folder.mkdir(parents=True, exist_ok=True)
+        
+        uploaded_file = st.file_uploader(f"Carica file CSV per: {contesto}")
         
         if uploaded_file:
-            # Salvataggio file con Path
-            file_path = user_folder / uploaded_file.name
+            file_path = user_context_folder / uploaded_file.name
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            df = pd.read_csv(uploaded_file)
-            st.dataframe(df)
+            
+            st.info(f"File salvato correttamente in area {contesto}.")
+            
+            # --- ESECUZIONE ANALISI AUTOMATICA ---
+            ingestor = IngestorStrategico()
+            engine = DataGateway(storage_provider=None) 
+            
+            # 1. Ingestione e protezione (con contesto)
+            lista_asset = ingestor.da_csv(str(file_path), contesto)
+            
+            # 2. Esecuzione Scan Strategico
+            report_critici = engine.esegui_scan_strategico(lista_asset, contesto)
+            
+            # --- OUTPUT REPORT DI SINTESI ---
+            if report_critici:
+                st.warning(f"⚠️ Attenzione: Rilevati {len(report_critici)} elementi critici in {contesto}")
+                df_report = pd.DataFrame(report_critici)
+                st.dataframe(df_report)
+                
+                # Bottone download
+                csv_report = df_report.to_csv(index=False)
+                st.download_button("📥 Scarica Report Analisi", csv_report, "report_analisi.csv", "text/csv")
+            else:
+                st.success("✅ Analisi completata: Nessuna criticità rilevata.")
 
         st.divider()
         st.subheader("📩 Hai bisogno di un adeguamento?")
