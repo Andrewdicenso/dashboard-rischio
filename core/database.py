@@ -3,8 +3,8 @@ import datetime
 import os
 
 class DatabaseAziendale:
-    def __init__(self, db_folder="data", db_name="azienda.db"):
-        # Assicura che la cartella 'data' esista
+    def __init__(self, db_folder="data/db", db_name="azienda.db"):
+        # Assicura che la sottocartella 'db' dentro 'data' esista
         os.makedirs(db_folder, exist_ok=True)
         db_path = os.path.join(db_folder, db_name)
         

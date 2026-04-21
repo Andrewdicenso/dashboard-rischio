@@ -7,12 +7,14 @@ import os
 
 # --- CONFIGURAZIONE ---
 MIA_AZIENDA = "AZIENDA_001"
-# Assicuriamo che la cartella data esista per i report
-os.makedirs("data/logs", exist_ok=True)
+# Percorsi definiti in modo centralizzato per coerenza con la struttura VS Code
+DB_PATH = "data/db/azienda.db"
+LOG_PATH = "data/logs/report_critico.txt"
 
 # 1. Inizializzazione
-db = DatabaseAziendale()
-sentinella = Sentinella()
+# Passiamo i percorsi specifici al database e alla sentinella
+db = DatabaseAziendale(db_folder="data/db", db_name="azienda.db")
+sentinella = Sentinella(log_dir="data/logs", filename="report_critico.txt")
 analista = AnalistaRischio(db.conn)
 
 # Ecosistema
@@ -24,7 +26,6 @@ ecosistema = [
 # 2. Analisi e Salvataggio
 print(f"--- ANALISI STRATEGICA PER {MIA_AZIENDA} ---")
 for asset in ecosistema:
-    # Assumiamo che db.salva_asset gestisca internamente i percorsi
     db.salva_asset(asset, MIA_AZIENDA)
 
 # 3. Interrogazione
@@ -32,7 +33,6 @@ rischi_storici = db.estrai_asset_a_rischio(MIA_AZIENDA, 5)
 for nome, rischio in rischi_storici:
     print(f"ATTENZIONE: {nome} ha rischio {rischio} per {MIA_AZIENDA}.")
 
-# 4. Sentinella (Assicuriamoci che il report vada in data/logs)
-report_path = os.path.join("data/logs", "report_critico.txt")
-sentinella.genera_report(rischi_storici, output_file=report_path)
-print(f"Report generato in: {report_path}")
+# 4. Sentinella
+sentinella.genera_report(rischi_storici)
+print(f"Report generato in: {LOG_PATH}")
