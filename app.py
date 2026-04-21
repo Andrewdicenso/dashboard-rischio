@@ -1,10 +1,18 @@
 import streamlit as st
 import pandas as pd
 import os
-import glob
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="Dashboard Rischio Aziendale", layout="wide")
+
+# Percorsi aggiornati alla nuova struttura
+LOG_CANDIDATURE = "data/logs/richieste_candidature.txt"
+LOG_FEEDBACK = "data/logs/richieste_clienti.txt"
+UPLOAD_DIR = "data/uploads"
+
+# Assicurati che le cartelle esistano
+os.makedirs("data/logs", exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # --- LOGICA GUIDA ---
 def mostra_guida():
@@ -39,12 +47,7 @@ if not st.session_state.logged_in:
 
     with tab2:
         st.subheader("Richiesta di Accreditamento War Room")
-        st.markdown("""
-        *RGandja | Intelligence Operativa*
-        
-        L'accesso alla War Room è riservato esclusivamente ad aziende selezionate. 
-        Ogni richiesta viene analizzata personalmente per garantire la massima efficacia dei processi.
-        """)
+        st.markdown("*RGandja | Intelligence Operativa*\n\nL'accesso alla War Room è riservato esclusivamente ad aziende selezionate.")
         
         with st.form("richiesta_accesso_form"):
             nome_azienda = st.text_input("Nome Azienda")
@@ -56,9 +59,9 @@ if not st.session_state.logged_in:
             
             if submit_button:
                 if nome_azienda and email_aziendale:
-                    with open("richieste_candidature.txt", "a") as f:
+                    with open(LOG_CANDIDATURE, "a") as f:
                         f.write(f"Azienda: {nome_azienda} | Sito: {sito_web} | Ref: {referente} | Email: {email_aziendale} | Note: {note}\n")
-                    st.success("Candidatura inviata! Verificheremo la tua richiesta e ti risponderemo presto.")
+                    st.success("Candidatura inviata!")
                 else:
                     st.error("Per favore, compila almeno il Nome Azienda e l'Email.")
 
@@ -73,17 +76,16 @@ else:
     # --- LOGICA ADMIN ---
     if azienda == "ADMIN_PRINCIPALE":
         st.title("🛡️ Centrale di Controllo Admin")
-        
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Leggi richieste accesso"):
-                if os.path.exists("richieste_candidature.txt"):
-                    with open("richieste_candidature.txt", "r") as f:
+                if os.path.exists(LOG_CANDIDATURE):
+                    with open(LOG_CANDIDATURE, "r") as f:
                         st.text(f.read())
         with col2:
             if st.button("Leggi feedback adeguamento"):
-                if os.path.exists("richieste_clienti.txt"):
-                    with open("richieste_clienti.txt", "r") as f:
+                if os.path.exists(LOG_FEEDBACK):
+                    with open(LOG_FEEDBACK, "r") as f:
                         st.text(f.read())
     
     # --- DASHBOARD AZIENDA ---
@@ -91,7 +93,7 @@ else:
         st.title(f"📊 Dashboard - {azienda}")
         mostra_guida() 
         
-        user_folder = f"uploads/{azienda}"
+        user_folder = os.path.join(UPLOAD_DIR, azienda)
         if not os.path.exists(user_folder): os.makedirs(user_folder)
         
         uploaded_file = st.file_uploader("Carica o aggiorna il tuo file CSV")
@@ -102,12 +104,11 @@ else:
             df = pd.read_csv(uploaded_file)
             st.dataframe(df)
 
-        # --- MODULO FEEDBACK ---
         st.divider()
         st.subheader("📩 Hai bisogno di un adeguamento?")
         with st.form("form_feedback"):
             richiesta = st.text_area("Descrivi la modifica necessaria:")
             if st.form_submit_button("Invia richiesta"):
-                with open("richieste_clienti.txt", "a") as f:
+                with open(LOG_FEEDBACK, "a") as f:
                     f.write(f"Azienda: {azienda} - Richiesta: {richiesta}\n")
                 st.success("Richiesta inviata correttamente!")

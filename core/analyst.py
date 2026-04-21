@@ -6,8 +6,11 @@ class AnalistaRischio:
 
     def calcola_trend(self, nome_asset):
         """Analizza l'evoluzione del rischio nel tempo per un asset specifico."""
-        query = f"SELECT rischio, data_inserimento FROM asset WHERE nome = '{nome_asset}' ORDER BY data_inserimento ASC"
-        df = pd.read_sql_query(query, self.db_conn)
+        # Correzione sicurezza: uso dei parametri (?) invece della concatenazione di stringhe
+        query = "SELECT rischio, data_inserimento FROM asset WHERE nome = ? ORDER BY data_inserimento ASC"
+        
+        # Passiamo il parametro come una tupla
+        df = pd.read_sql_query(query, self.db_conn, params=(nome_asset,))
         
         if len(df) < 2:
             return "Dati insufficienti per analisi trend"
