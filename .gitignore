@@ -15,3 +15,6 @@ token.pickle
 # --- DATI E LOG ---
 *.log
 data_test/
+# --- CONFIGURAZIONI STREAMLIT ---
+.streamlit/
+secrets.toml
