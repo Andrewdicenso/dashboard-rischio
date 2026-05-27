@@ -26,13 +26,17 @@ class DatabaseAziendale:
             logger.critical(f"❌ Fallimento critico database: {e}")
             raise
 
+    # 🔥 FUNZIONE AGGIUNTA QUI (POSIZIONE CORRETTA)
+    def _get_conn(self):
+        return sqlite3.connect(self.db_path)
+
     def crea_tabelle(self):
         """Inizializza lo schema garantendo l'integrità dei dati criptati."""
         try:
             with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
                 cursor = conn.cursor()
                 
-                # 1. Tabella Asset Logs (Cuore dei dati)
+                # 1. Tabella Asset Logs
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS asset_logs (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +51,7 @@ class DatabaseAziendale:
                     )
                 ''')
 
-                # 2. Tabella Storico KPI (Per analisi finanziaria)
+                # 2. Tabella Storico KPI
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS storico_kpi (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +62,7 @@ class DatabaseAziendale:
                     )
                 """)
 
-                # 3. Log Caricamenti (Audit per Admin)
+                # 3. Log Caricamenti
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS log_caricamenti (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,19 +72,92 @@ class DatabaseAziendale:
                         nome_file TEXT
                     )
                 """)
+
+                # 4. Tabella Utenti (NUOVA)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS utenti (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        email TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        ruolo TEXT NOT NULL,
+                        azienda TEXT,
+                        data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+
                 conn.commit()
         except Exception as e:
             logger.error(f"❌ Errore creazione schema: {e}")
             raise
 
-    def salva_asset(self, company_id, nome_asset, rischio, **kwargs):
-        """Salva l'asset cifrando automaticamente i dati sensibili."""
+    # ------------------------------
+    #   FUNZIONI UTENTI (NUOVE)
+    # ------------------------------
+
+    def crea_utente(self, email, password_hash, ruolo, azienda):
         try:
-            # Cifratura simmetrica per conformità GDPR/Enterprise
+            email_enc = self.vault.encrypt_data(email)
+            azienda_enc = self.vault.encrypt_data(azienda)
+
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute("""
+                    INSERT INTO utenti (email, password_hash, ruolo, azienda)
+                    VALUES (?, ?, ?, ?)
+                """, (email_enc, password_hash, ruolo, azienda_enc))
+        except Exception as e:
+            logger.error(f"Errore creazione utente: {e}")
+            raise
+
+    def get_utente_by_email(self, email):
+        try:
+            email_enc = self.vault.encrypt_data(email)
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute("""
+                    SELECT id, email, password_hash, ruolo, azienda
+                    FROM utenti WHERE email = ?
+                """, (email_enc,))
+                row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            return {
+                "id": row[0],
+                "email": self.vault.decrypt_data(row[1]),
+                "password_hash": row[2],
+                "ruolo": row[3],
+                "azienda": self.vault.decrypt_data(row[4])
+            }
+        except Exception as e:
+            logger.error(f"Errore recupero utente: {e}")
+            return None
+
+    def get_tutti_gli_utenti(self):
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                df = pd.read_sql_query("SELECT * FROM utenti", conn)
+
+            if df.empty:
+                return df
+
+            df["email"] = df["email"].apply(self.vault.decrypt_data)
+            df["azienda"] = df["azienda"].apply(self.vault.decrypt_data)
+
+            return df
+        except Exception as e:
+            logger.error(f"Errore recupero utenti: {e}")
+            return pd.DataFrame()
+
+    # ------------------------------
+    #   FUNZIONI ESISTENTI
+    # ------------------------------
+
+    def salva_asset(self, company_id, nome_asset, rischio, **kwargs):
+        try:
             company_id_secure = self.vault.encrypt_data(str(company_id))
             nome_secure = self.vault.encrypt_data(str(nome_asset))
             
-            # Parametri opzionali con valori di default
             tipo_asset = kwargs.get('tipo', 'GenericAsset')
             momentum = kwargs.get('momentum', 'Stabile')
             volatilita = kwargs.get('volatilita', 0.0)
@@ -96,7 +173,6 @@ class DatabaseAziendale:
             logger.error(f"❌ Errore salvataggio asset {nome_asset}: {e}")
 
     def recupera_asset_per_azienda(self, company_id):
-        """Estrae e decripta tutti gli asset di un'azienda per l'Archivio Storico."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 df = pd.read_sql_query('SELECT * FROM asset_logs', conn)
@@ -104,10 +180,7 @@ class DatabaseAziendale:
             if df.empty:
                 return df
 
-            # Decifratura massiva per la visualizzazione utente
             df['company_id'] = df['company_id'].apply(self.vault.decrypt_data)
-            
-            # Filtriamo per l'azienda attuale
             df_filtrato = df[df['company_id'] == company_id].copy()
             
             if not df_filtrato.empty:
@@ -119,7 +192,6 @@ class DatabaseAziendale:
             return pd.DataFrame()
 
     def recupera_attivita_globale(self):
-        """Metodo per Centrale Admin: visualizza i log decriptati di tutto il sistema."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 df = pd.read_sql_query('SELECT id, company_id, nome, rischio, timestamp FROM asset_logs ORDER BY id DESC', conn)
@@ -134,7 +206,6 @@ class DatabaseAziendale:
             return pd.DataFrame()
 
     def registra_caricamento(self, azienda, contesto, nome_file):
-        """Audit log cifrato per tracciabilità operazioni."""
         try:
             azienda_sec = self.vault.encrypt_data(str(azienda))
             file_sec = self.vault.encrypt_data(str(nome_file))
@@ -144,3 +215,4 @@ class DatabaseAziendale:
                             (azienda_sec, contesto, file_sec))
         except Exception as e: 
             logger.error(f"Errore log admin: {e}")
+
