@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from ingestor import GestoreDati  # Importazione per il modulo Premium
+from ingestor import IngestoreDati  # MODIFICATO: Allineato con la classe in ingestor.py
 
 class ConsulenteAziendale:
     def __init__(self, nome_azienda, file_config="config.json"):
@@ -71,8 +71,9 @@ class ConsulenteAziendale:
         print("Configurazione aggiornata massivamente dal modulo Premium.")
 
     def avvia_calibrazione_premium(self, cartella_dati="./dati_storici"):
-        """Ponte verso il GestoreDati per calibrazione automatica."""
-        gestore = GestoreDati()
+        """Ponte verso l'IngestoreDati per calibrazione automatica."""
+        # MODIFICATO: Istanzia IngestoreDati anziché GestoreDati
+        gestore = IngestoreDati()
         nuove_soglie = gestore.calcola_soglie_da_storico(cartella_dati)
         self.aggiorna_configurazione_da_dict(nuove_soglie)
 

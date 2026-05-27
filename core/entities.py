@@ -1,84 +1,85 @@
 import logging
+from datetime import datetime
 
+# Configurazione Logger per tracciabilità professionale
 logger = logging.getLogger("RGD-Alpha.Entities")
 
 class AssetStrategico:
     """
-    Classe Base: Ogni risorsa aziendale deve avere un'appartenenza societaria (company_id).
+    CLASSE UNIVERSALE RGD-ALPHA: 
+    Progettata per adattarsi a qualsiasi documento aziendale (Fatture, Bolle, Prima Nota).
+    Utilizza la logica dinamica per prevenire errori di 'unexpected arguments'.
     """
-    def __init__(self, id: int, nome: str, rischio: float, company_id: str = "GENERIC_CORP"):
+    def __init__(self, id=None, nome="Generico", rischio=0.0, company_id="GENERIC_CORP", **kwargs):
         self.id = id
         self.nome = nome
         self.rischio = rischio
-        self.company_id = company_id # Fondamentale per la scalabilità multi-aziendale
-
-class AssetDiMercato:
-    def __init__(self, id_asset, nome, valore, impatto, company_id=None):
-        self.id_asset = id_asset
-        self.nome = nome
-        self.valore = valore
-        self.impatto = impatto
         self.company_id = company_id
-        # Il rischio viene calcolato dinamicamente
-        self.rischio = round(valore * impatto, 2)
-    """
-    Partner e Fornitori. Valutazione basata su affidabilità.
-    """
-    def __init__(self, id: int, nome: str, affidabilita: float, rischio: float, company_id: str = "GENERIC_CORP"):
-        super().__init__(id, nome, rischio, company_id)
-        self.affidabilita = affidabilita
-        self.stato = "Attivo" # Valore di default per engine.py
+        self.data_rilevazione = kwargs.get('data', datetime.now().strftime("%Y-%m-%d"))
+        
+        # --- MOTORE DINAMICO ---
+        # Salva automaticamente qualsiasi altra colonna trovata nel file (es. Pezzi, IBAN, Vettore)
+        self.dati_extra = kwargs 
+        
+        # Inizializziamo i campi per i 5 KPI Predittivi
+        self.analisi_predittiva = {}
 
-    def analisi_strategica(self) -> str:
-        if self.affidabilita > 0.8 and self.rischio < 3:
-            return "Partner Strategico: Punto fermo da tutelare."
-        elif self.affidabilita < 0.5:
-            return "Partner Critico: Instabilità elevata, rischio operativo."
-        return "Partner Standard: Collaborazione regolare."
+    def genera_kpi_strategici(self):
+        """
+        Trasforma i dati grezzi in sentenze strategiche per l'imprenditore.
+        Analizza: Solidità, Salute Finanziaria, Rischio Fornitore, Efficienza, Sicurezza.
+        """
+        # Esempio di logica predittiva interna
+        voto_rischio = float(self.rischio)
+        
+        if voto_rischio > 7:
+            conclusione = "CRITICO: Richiede intervento immediato del management."
+            previsione = "Rischio di interruzione operativa entro 30 giorni."
+        elif voto_rischio < 3:
+            conclusione = "SICURO: Asset stabile."
+            previsione = "Continuità garantita a lungo termine."
+        else:
+            conclusione = "MONITORAGGIO: Parametri nella norma."
+            previsione = "Stabilità prevista per il prossimo trimestre."
 
-class AssetDiRelazione(AssetStrategico):
-    """
-    Clienti: Valutazione basata su Life Time Value (LTV).
-    """
-    def __init__(self, id: int, nome: str, ltv: float, rischio: float, company_id: str = "GENERIC_CORP"):
-        super().__init__(id, nome, rischio, company_id)
-        self.ltv = ltv
+        self.analisi_predittiva = {
+            "stato": conclusione,
+            "proiezione": previsione,
+            "kpi_id": self.id
+        }
+        return self.analisi_predittiva
 
-    def analisi_strategica(self) -> str:
-        if self.ltv > 5000:
-            return "Cliente Premium: Alto impatto sul fatturato."
-        elif self.rischio > 7:
-            return "Cliente a rischio: Verificare regolarità pagamenti."
-        return "Cliente Standard."
+class AssetDiMercato(AssetStrategico):
+    """
+    SETTORE LOGISTICA & MAGAZZINO (Bolle, Carico/Scarico, DDT)
+    Adattato per riconoscere i documenti di trasporto e registri movimenti.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Mapping Universale: cerca 'Quantita', 'Pezzi', o il nuovo 'Codice_SKU'
+        self.quantita = kwargs.get('quantita', kwargs.get('Quantita', kwargs.get('Pezzi', 0)))
+        self.sku = kwargs.get('Codice_SKU', kwargs.get('SKU', 'N/D'))
+        self.ubicazione = kwargs.get('Ubicazione', 'Magazzino Centrale')
 
 class AssetDiValore(AssetStrategico):
     """
-    Risorse Fisiche e Prodotti: Compatibile con i requisiti dello Scan Strategico.
+    SETTORE FINANCE & CONTABILITÀ (Fatture, Prima Nota, Bilancio)
+    Adattato per gestire flussi di cassa e pagamenti.
     """
-    def __init__(self, id: int, nome: str, costo: float, prezzo: float, rischio: float, company_id: str = "GENERIC_CORP"):
-        super().__init__(id, nome, rischio, company_id)
-        self.costo = costo
-        self.prezzo = prezzo
-        
-        # Attributi dinamici richiesti dall'Engine
-        self.quantita = 0.0
-        self.volume = 0.0
-        self.stato = "Disponibile"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Mapping Universale: cerca 'Importo', 'Lordo', o 'Costo_Unitario'
+        self.prezzo = kwargs.get('prezzo', kwargs.get('Importo', kwargs.get('Costo_Unitario', 0.0)))
+        self.stato_pagamento = kwargs.get('stato', kwargs.get('Stato_Qualita', kwargs.get('Condizione', 'In attesa')))
+        self.valuta = kwargs.get('Valuta', 'EUR')
 
-    def verifica_integrita_dati(self, contesto):
-        """Controlla se mancano parametri vitali per l'analisi engine."""
-        messaggi = []
-        if contesto == "Magazzino" and (self.quantita is None or self.quantita == 0):
-            messaggi.append("Attenzione: Quantità stock non rilevata o zero.")
-        return messaggi
-
-    def calcola_margine(self) -> float:
-        return self.prezzo - self.costo
-
-    def genera_alert(self, soglia: float = 7.0) -> dict:
-        if self.rischio > soglia:
-            return {
-                "stato": "CRITICO",
-                "messaggio": f"L'asset '{self.nome}' richiede intervento immediato."
-            }
-        return {"stato": "OK", "messaggio": "Parametri nella norma."}
+class AssetDiRelazione(AssetStrategico):
+    """
+    SETTORE CRM & STAKEHOLDERS (Clienti, Fornitori, Contratti)
+    Adattato per valutare la solidità dei rapporti commerciali.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Mapping Universale: identifica il partner commerciale
+        self.partner = kwargs.get('Fornitore_Origine', kwargs.get('Cliente', kwargs.get('Ragione_Sociale', 'Privato')))
+        self.livello_servizio = kwargs.get('rischio', 5.0)
