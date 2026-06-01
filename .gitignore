@@ -18,3 +18,4 @@ data_test/
 # --- CONFIGURAZIONI STREAMLIT ---
 .streamlit/
 secrets.toml
+.venv/
