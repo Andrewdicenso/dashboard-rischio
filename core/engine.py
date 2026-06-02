@@ -58,44 +58,45 @@ class DataGateway:
         except Exception as e:
             logger.warning(f"Archiviazione fallita: {e}")
 
+    py
+    def _genera_consiglio_azione(self, rischio, settore):
+        """Genera un consiglio pratico basato su rischio e settore rilevato."""
+        if rischio > 8:
+            if settore == "LOGISTICS":
+                return "🚨 CRITICO: Avviare liquidazione immediata o svendita stock per liberare spazio e capitale."
+            if settore == "FINANCE":
+                return "🚨 CRITICO: Rischio perdita totale valore. Valutare accantonamento o revisione immediata contratti."
+            return "🚨 CRITICO: Azione d'emergenza richiesta entro 48 ore."
+        
+        elif rischio > 5:
+            if settore == "LOGISTICS":
+                return "⚠️ ATTENZIONE: Pianificare promozione 'Bundle' o rotazione fisica verso zone di prelievo rapido."
+            if settore == "RELATIONS":
+                return "⚠️ ATTENZIONE: Contattare il fornitore per rinegoziare i tempi o cercare alternativa secondaria."
+            return "⚠️ ATTENZIONE: Monitoraggio intensivo richiesto per i prossimi 7 giorni."
+        
+        else:
+            return "✅ OTTIMALE: Mantenere le attuali politiche di riordino. Nessuna azione richiesta."
+
     def esegui_scan_strategico(self, lista_asset, contesto, fattore_stress=1.0):
-        """
-        Analisi Avanzata RGD-ALPHA con WHAT-IF ANALYSIS.
-        """
-        colonne = []
-        if lista_asset:
-            primo_asset = lista_asset[0]
-            if isinstance(primo_asset, dict):
-                colonne = list(primo_asset.keys())
-            else:
-                colonne = list(vars(primo_asset).keys())
-        
+        # ... (mantieni la logica esistente di rilevamento settore) ...
         config_settore = analizza_e_configura_motore(colonne)
-        soglia_critica = config_settore["soglia"]
-        
-        # LOGICA WHAT-IF: Il moltiplicatore finale include lo stress test
-        moltiplicatore_finale = config_settore["moltiplicatore"] * self.pesi_contesto.get(contesto, 1.0) * fattore_stress
+        settore_rilevato = config_settore.get("settore", "GENERAL")
         
         report = []
         for asset in lista_asset:
-            nome_asset = asset.nome if not isinstance(asset, dict) else asset.get("nome", "Prodotto")
-            rischio_base = asset.rischio if not isinstance(asset, dict) else asset.get("rischio", 0.0)
-                
+            # ... (mantieni il calcolo del rischio_pesato) ...
             rischio_pesato = round(rischio_base * moltiplicatore_finale, 2)
-            self._archivia_asset(asset, rischio_pesato)
             
-            proiezione_30gg = round(rischio_pesato * 1.25, 2)
+            # --- NUOVA LOGICA: GENERAZIONE CONSIGLIO ---
+            consiglio = self._genera_consiglio_azione(rischio_pesato, settore_rilevato)
             
-            # Definizione stato
-            stato_salute = "CRITICO" if rischio_pesato > soglia_critica else "OTTIMALE"
-            if 5.0 < rischio_pesato <= soglia_critica:
-                stato_salute = "ATTENZIONE"
-
             report.append({
                 "asset": nome_asset,
-                "stato": stato_salute,
+                "stato": "CRITICO" if rischio_pesato > 7 else "ATTENZIONE" if rischio_pesato > 5 else "OTTIMALE",
                 "rischio": rischio_pesato,
                 "proiezione_impatto": proiezione_30gg,
+                "consiglio_strategico": consiglio, # <--- IL VALORE AGGIUNTO
                 "alert": "🚨 STRESS TEST ATTIVO" if fattore_stress > 1.0 else "Nessuna anomalia"
             })
         return report
