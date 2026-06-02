@@ -1,4 +1,3 @@
-py
 import os
 from pathlib import Path
 from datetime import datetime
@@ -147,7 +146,6 @@ if scelta == "📊 War Room Strategica":
             if lista_asset:
                 engine = DataGateway()
                 db.registra_caricamento(user_id, "UNIVERSAL", uploaded_file.name)
-                # Chiamata al motore con gestione stress test
                 report_analisi = engine.esegui_scan_strategico(lista_asset, "UNIVERSAL", fattore_stress=f_stress)
                 kpi_reali = db.calcola_e_salva_kpi_correnti(user_id)
                 status.update(label="Analisi completata!", state="complete")
@@ -158,7 +156,6 @@ if scelta == "📊 War Room Strategica":
                 cols[0].metric("Solidità", f"{kpi_reali.get('solidita', 0)}%")
                 cols[1].metric("Rischio", f"{kpi_reali.get('rischio_medio', 0)}/10")
                 
-                # Calcolo momentum sicuro (evita divisione per zero)
                 mom_val = sum([getattr(a, 'rischio', 5.0) for a in lista_asset]) / len(lista_asset) if lista_asset else 5.0
                 cols[2].metric("Momentum", f"{round(mom_val * 10, 1)}%")
                 cols[3].metric("Efficienza", "84%")
@@ -175,9 +172,8 @@ if scelta == "📊 War Room Strategica":
                 """, unsafe_allow_html=True)
 
                 # --- DETTAGLIO ---
-                st.subheader("📝 Piano d'Azione")
+                st.subheader("📝 Piano d'Actione")
                 for asset in report_analisi:
-                    # Gestione sicura sia per Dizionari che per Oggetti
                     r = asset.get('rischio', 0) if isinstance(asset, dict) else getattr(asset, 'rischio', 0)
                     nome = asset.get('asset', 'Asset') if isinstance(asset, dict) else getattr(asset, 'asset', 'Asset')
                     stato = asset.get('stato', 'N/D') if isinstance(asset, dict) else getattr(asset, 'stato', 'N/D')
