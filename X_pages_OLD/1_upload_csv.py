@@ -12,9 +12,20 @@ st.set_page_config(page_title="Upload CSV - RGandja", layout="wide")
 st.title("📤 Caricamento CSV Aziendale")
 st.write("Carica un file CSV per importare automaticamente gli asset nel sistema RGandja.")
 
-COMPANY_ID = "AZ-TEST-01"  # Deve essere lo stesso della dashboard
+# ---------------------------------------------------------
+# VERIFICA LOGIN
+# ---------------------------------------------------------
+if "logged_in" not in st.session_state or not st.session_state.logged_in:
+    st.warning("🔒 Devi effettuare il login per accedere a questa pagina.")
+    st.stop()
 
-# Inizializzazione moduli core
+utente = st.session_state.user
+user_id = utente["id"]
+azienda = utente["azienda"]
+
+# ---------------------------------------------------------
+# INIZIALIZZAZIONE MODULI CORE
+# ---------------------------------------------------------
 ingestor = IngestoreDati()
 db = DatabaseAziendale()
 
@@ -39,12 +50,12 @@ if uploaded_file is not None:
             df_preview.to_csv(temp_path, index=False)
 
             # Elaborazione tramite IngestoreDati
-            lista_asset = ingestor.elabora_csv(temp_path, COMPANY_ID)
+            lista_asset = ingestor.elabora_csv(temp_path, azienda)
 
-            # Registrazione nel database
-            db.registra_caricamento(COMPANY_ID, "UPLOAD_WEB", uploaded_file.name)
+            # Registrazione nel database (multi-tenant)
+            db.registra_caricamento(user_id, "UPLOAD_WEB", uploaded_file.name)
 
-            st.success(f"✅ Importazione completata! {len(lista_asset)} asset registrati.")
+            st.success(f"✅ Importazione completata! {len(lista_asset)} asset registrati per {azienda}.")
             os.remove(temp_path)
 
         except Exception as e:
@@ -52,3 +63,4 @@ if uploaded_file is not None:
 
 else:
     st.info("⬆️ Carica un file CSV per iniziare.")
+

@@ -20,7 +20,7 @@ if not os.path.exists(CONFIG_PATH):
     st.error("❌ File config.json non trovato. Impossibile caricare i KPI.")
     st.stop()
 
-consulente = ConsulenteAziendale("AZ-TEST-01", file_config=CONFIG_PATH)
+COMPANY_ID = st.session_state.get("COMPANY_ID", "AZIENDA_01")
 kpi = consulente.get_all_kpi()
 
 # ---------------------------------------------------------

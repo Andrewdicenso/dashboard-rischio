@@ -8,7 +8,7 @@ SETTORI_CONFIG = {
         "label": "Qualità e Deperibilità",
         "action_plan": "Verificare immediatamente scadenze imminenti e integrità catena del freddo.",
         "moltiplicatore_rischio": 1.3
-    } ,
+    },
     "SECONDARIO_MANIFATTURA": {
         "keywords": ["taglia", "materia prima", "produzione", "stock", "pezzi", "semilavorato"],
         "soglia_critica": 7.5,

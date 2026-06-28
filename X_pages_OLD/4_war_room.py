@@ -12,7 +12,7 @@ from core.analyst import AnalistaRischio
 st.set_page_config(page_title="War Room - RGandja", layout="wide")
 st.title("🚨 WAR ROOM - Monitoraggio Criticità in Tempo Reale")
 
-COMPANY_ID = "AZ-TEST-01"
+COMPANY_ID = st.session_state.get("COMPANY_ID", "AZIENDA_01")
 
 # ---------------------------------------------------------
 # INIZIALIZZAZIONE
