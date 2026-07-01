@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 # FILE: core/engine.py
+=======
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
 import sys
 import logging
 from pathlib import Path
 from datetime import datetime
 
 # ==============================================================================
+<<<<<<< HEAD
 # RISOLUZIONE DINAMICA DEL PATH PER STREAMLIT (Evita ModuleNotFoundError)
+=======
+# RISOLUZIONE DINAMICA DEL PATH PER STREAMLIT
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
 # ==============================================================================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -13,37 +20,38 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from core.secure_vault import SecureVault
 from core.database import DatabaseAziendale
+<<<<<<< HEAD
 from experimental_modules.engine_settori import analizza_e_configura_motore
+=======
+from core.experimental_modules.engine_settori import analizza_e_configura_motore
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
 
-# Configurazione logging avanzato per Audit Aziendale
 logger = logging.getLogger("RGD-Alpha.Gateway.Enterprise")
 
 class DataGateway:
-    """
-    Gateway Enterprise: Sistema di analisi, protezione e simulazione predittiva.
-    Gestisce il flusso dati tra l'ingestione e l'archiviazione storica.
-    """
     def __init__(self):
         try:
-            # Percorso centralizzato: garantisce l'avvio indipendentemente dal punto di esecuzione
             self.vault = SecureVault(key_path="core/security/vault.key")
             self.db = DatabaseAziendale()
         except Exception as e:
             logger.critical(f"Errore critico avvio componenti core: {e}")
             raise
         
-        # Pesi strategici: riflettono la sensibilità del business
         self.pesi_contesto = {
             "Magazzino": 1.2,
             "Fornitori": 1.5,
             "Performance Vendite": 1.0,
-            "UNIVERSAL": 1.0  # Allineamento con la Dashboard principale
+            "UNIVERSAL": 1.0
         }
 
     def _archivia_asset(self, asset, rischio_pesato):
+<<<<<<< HEAD
         """Salvataggio nel DB adattivo per supportare sia Oggetti che Dizionari."""
         try:
             # Riconoscimento robusto della tipologia di struttura dati passata
+=======
+        try:
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
             if isinstance(asset, dict):
                 user_id = asset.get("user_id", 1)
                 nome_asset = asset.get("nome", "Prodotto_Ignoto")
@@ -57,7 +65,10 @@ class DataGateway:
                 momentum = getattr(asset, 'momentum', 'Stabile')
                 volatilita = getattr(asset, 'volatilita', 0.0)
 
+<<<<<<< HEAD
             # Esecuzione persistenza atomica sul database allineata con il modulo aziendale
+=======
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
             self.db.salva_asset(
                 user_id=user_id,
                 nome_asset=nome_asset,
@@ -67,6 +78,7 @@ class DataGateway:
                 volatilita=volatilita
             )
         except Exception as e:
+<<<<<<< HEAD
             # Evitiamo crash critici se un singolo asset è corrotto durante lo storicizzazione
             nome_log = asset.get('nome', '?') if isinstance(asset, dict) else getattr(asset, 'nome', '?')
             logger.warning(f"Archiviazione fallita per asset {nome_log}: {e}")
@@ -98,8 +110,34 @@ class DataGateway:
             extra_sample = sample.get('dati_extra', {}) if isinstance(sample, dict) else getattr(sample, 'dati_extra', {})
             print(f"📄 Esempio dati extra primo asset: {extra_sample}")
         print("="*50 + "\n")
+=======
+            logger.warning(f"Archiviazione fallita: {e}")
+
+    py
+    def _genera_consiglio_azione(self, rischio, settore):
+        """Genera un consiglio pratico basato su rischio e settore rilevato."""
+        if rischio > 8:
+            if settore == "LOGISTICS":
+                return "🚨 CRITICO: Avviare liquidazione immediata o svendita stock per liberare spazio e capitale."
+            if settore == "FINANCE":
+                return "🚨 CRITICO: Rischio perdita totale valore. Valutare accantonamento o revisione immediata contratti."
+            return "🚨 CRITICO: Azione d'emergenza richiesta entro 48 ore."
         
+        elif rischio > 5:
+            if settore == "LOGISTICS":
+                return "⚠️ ATTENZIONE: Pianificare promozione 'Bundle' o rotazione fisica verso zone di prelievo rapido."
+            if settore == "RELATIONS":
+                return "⚠️ ATTENZIONE: Contattare il fornitore per rinegoziare i tempi o cercare alternativa secondaria."
+            return "⚠️ ATTENZIONE: Monitoraggio intensivo richiesto per i prossimi 7 giorni."
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+        
+        else:
+            return "✅ OTTIMALE: Mantenere le attuali politiche di riordino. Nessuna azione richiesta."
+
+    def esegui_scan_strategico(self, lista_asset, contesto, fattore_stress=1.0):
+        # ... (mantieni la logica esistente di rilevamento settore) ...
         config_settore = analizza_e_configura_motore(colonne)
+<<<<<<< HEAD
         
         # Parametri dinamici estrapolati dal modulo settori
         soglia_critica = config_settore["soglia"]
@@ -118,11 +156,19 @@ class DataGateway:
                 nome_asset = getattr(asset, 'nome', 'Prodotto')
                 rischio_base = getattr(asset, 'rischio', 0.0)
                 
+=======
+        settore_rilevato = config_settore.get("settore", "GENERAL")
+        
+        report = []
+        for asset in lista_asset:
+            # ... (mantieni il calcolo del rischio_pesato) ...
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
             rischio_pesato = round(rischio_base * moltiplicatore_finale, 2)
             
-            # --- ALIMENTAZIONE DATABASE ---
-            self._archivia_asset(asset, rischio_pesato)
+            # --- NUOVA LOGICA: GENERAZIONE CONSIGLIO ---
+            consiglio = self._genera_consiglio_azione(rischio_pesato, settore_rilevato)
             
+<<<<<<< HEAD
             # --- MOTORE PREDITTIVO AUTOMATICO ---
             proiezione_30gg = round(rischio_pesato * 1.25, 2)
             proiezione_90gg = round(rischio_pesato * 1.5, 2)
@@ -141,22 +187,22 @@ class DataGateway:
             report.append({
                 "asset": nome_asset,
                 "stato": stato_salute,
+=======
+            report.append({
+                "asset": nome_asset,
+                "stato": "CRITICO" if rischio_pesato > 7 else "ATTENZIONE" if rischio_pesato > 5 else "OTTIMALE",
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
                 "rischio": rischio_pesato,
                 "proiezione_impatto": proiezione_30gg,
-                "trend_90gg": proiezione_90gg,
-                "settore_rilevato": config_settore["descrizione"],
-                "segnalazioni": " ".join(dettagli_alert) if dettagli_alert else "Parametri stabili."
+                "consiglio_strategico": consiglio, # <--- IL VALORE AGGIUNTO
+                "alert": "🚨 STRESS TEST ATTIVO" if fattore_stress > 1.0 else "Nessuna anomalia"
             })
-        
-        logger.info(f"Scan {contesto} completato ({config_settore['settore']}). Asset: {len(report)}")
         return report
 
 def salva_report_certificato(azienda, dati_report, vault):
-    """Genera un blob cifrato del report per il download sicuro."""
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        certificato = f"TS: {timestamp} | AZIENDA: {azienda} | ASSETS_RECAP: {len(dati_report)} | STATUS: VERIFIED"
+        certificato = f"TS: {timestamp} | AZIENDA: {azienda} | VERIFIED BY RGD-ALPHA"
         return vault.encrypt_data(certificato)
-    except Exception as e:
-        logger.error(f"Errore generazione certificato cifrato: {e}")
+    except:
         return None

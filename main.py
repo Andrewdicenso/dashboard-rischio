@@ -1,20 +1,14 @@
-import json
 import logging
-import random
-from pathlib import Path
-
-# --- IMPORT MODULI CORE ---
-from consulente import ConsulenteAziendale
-from core.entities import AssetDiMercato, AssetDiRelazione, AssetDiValore
 from core.database import DatabaseAziendale
-from core.notifier import Sentinella
-from core.analyst import AnalistaRischio
-from core.simulator import SimulatoreRischio
 
-# Configurazione del sistema di logging
-logging.basicConfig(level=logging.INFO)
+# Configurazione logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger("RGD-Alpha.Main")
 
+<<<<<<< HEAD
 def genera_storico_simulato(db, user_id, asset, giorni=12):
     """
     MOTORE DI STRESS TEST: Simula dati storici per alimentare l'algoritmo predittivo.
@@ -173,3 +167,38 @@ if __name__ == "__main__":
         avvia_sistema()
     except Exception as e:
         logger.critical(f"💥 Errore fatale irreversibile nel motore principale: {e}")
+=======
+
+def avvia_sistema():
+    """
+    Entry point di test e diagnostica.
+    Non avvia Streamlit.
+    Non modifica logiche critiche.
+    Serve solo per verificare che il database e i moduli core rispondano.
+    """
+    logger.info("🚀 Avvio diagnostica RGD-Alpha")
+
+    # 1. Inizializzazione database
+    try:
+        db = DatabaseAziendale()
+        logger.info("🗄️ Database inizializzato correttamente.")
+    except Exception as e:
+        logger.error(f"❌ Errore inizializzazione database: {e}")
+        return
+
+    # 2. Verifica admin
+    try:
+        admin = db.get_utente_by_email("admin@rgandja.com")
+        if admin:
+            logger.info("👤 Admin rilevato correttamente nel database.")
+        else:
+            logger.warning("⚠️ Admin NON trovato. Verrà ricreato automaticamente al prossimo avvio.")
+    except Exception as e:
+        logger.error(f"❌ Errore verifica admin: {e}")
+
+    logger.info("✅ Diagnostica completata. Il sistema è operativo.")
+
+
+if __name__ == "__main__":
+    avvia_sistema()
+>>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
