@@ -31,10 +31,7 @@ st.set_page_config(
     page_icon="🛡️"
 )
 
-<<<<<<< HEAD
-# Inizializziamo lo stato della sessione tramite il modulo auth
-=======
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
 inizializza_sessione()
 
 # =========================
