@@ -7,6 +7,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("RGD-Alpha.Main")
+
 def genera_storico_simulato(db, user_id, asset, giorni=12):
     """
     MOTORE DI STRESS TEST: Simula dati storici per alimentare l'algoritmo predittivo.
