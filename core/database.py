@@ -148,7 +148,6 @@ class DatabaseAziendale:
                     WHERE id = ?
                 """, (azienda_enc, user_id))
 
-=======
     def crea_utente(self, email, password, ruolo="user", azienda=None):
         try:
             with self._get_conn() as conn:
@@ -189,7 +188,7 @@ class DatabaseAziendale:
                 "ruolo": row[3],
                 "azienda": self.vault.decrypt_data(row[4]) if row[4] else None
             }
-=======
+
             with self._get_conn() as conn:
                 cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti")
                 rows = cursor.fetchall()
@@ -235,7 +234,7 @@ class DatabaseAziendale:
         try:
             with self._get_conn() as conn:
                 df = pd.read_sql_query("SELECT * FROM utenti", conn)
-=======
+
         try:
             with self._get_conn() as conn:
                 cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti WHERE id = ?", (user_id,))
@@ -318,7 +317,7 @@ class DatabaseAziendale:
                 )
 
             if df.empty:
-=======
+
     def recupera_attivita_globale(self, solo_admin=False):
         try:
             with self._get_conn() as conn:
