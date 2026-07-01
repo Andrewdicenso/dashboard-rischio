@@ -319,12 +319,12 @@ if scelta == "📜 Archivio Storico":
 #=======
     if password != conferma:
         st.error("Le password non coincidono.")
-        return
+        st.rerun()
     try:
         esistente = db.get_utente_by_email(email)
         if esistente:
             st.error("Email già registrata.")
-            return
+            st.rerun()
         
         ruolo = "admin" if email.lower() == "andrewdicenso@libero.it" else "user"
         user_id = db.crea_utente(email=email, password=password, ruolo=ruolo)
