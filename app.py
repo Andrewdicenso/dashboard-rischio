@@ -31,7 +31,6 @@ st.set_page_config(
     page_icon="🛡️"
 )
 
-
 inizializza_sessione()
 
 # =========================
@@ -56,7 +55,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-<<<<<<< HEAD
+
 # =========================
 #   ISTANZA DATABASE
 # =========================
@@ -64,18 +63,16 @@ db = DatabaseAziendale()
 
 # =========================
 #   FUNZIONI DI SUPPORTO INTERNE
-=======
+# =======
 db = DatabaseAziendale()
 
 # =========================
 #   GESTIONE REGISTRAZIONE
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
 # =========================
 def registra_nuovo_utente(email: str, password: str, conferma: str):
     if not email or not password or not conferma:
         st.error("Compila tutti i campi.")
         return
-<<<<<<< HEAD
 
     if password != conferma:
         st.error("Le password non coincidono.")
@@ -288,7 +285,7 @@ if scelta == "📜 Archivio Storico":
         st.dataframe(df_storico, use_container_width=True)
     else:
         st.warning("Nessun record presente in archivio. Esegui un'analisi nella War Room per iniziare.")
-=======
+#=======
     if password != conferma:
         st.error("Le password non coincidono.")
         return
@@ -419,4 +416,4 @@ if scelta == "🕵️ Centrale Admin" and is_admin:
             st.info("Nessun dato presente.")
     except Exception as e:
         st.error(f"Errore caricamento dati admin: {e}")
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
