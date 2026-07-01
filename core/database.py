@@ -317,7 +317,7 @@ class DatabaseAziendale:
                 )
 
             if df.empty:
-
+=======
     def recupera_attivita_globale(self, solo_admin=False):
         try:
             with self._get_conn() as conn:
