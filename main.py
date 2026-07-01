@@ -7,8 +7,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("RGD-Alpha.Main")
-
-<<<<<<< HEAD
 def genera_storico_simulato(db, user_id, asset, giorni=12):
     """
     MOTORE DI STRESS TEST: Simula dati storici per alimentare l'algoritmo predittivo.
@@ -167,7 +165,7 @@ if __name__ == "__main__":
         avvia_sistema()
     except Exception as e:
         logger.critical(f"💥 Errore fatale irreversibile nel motore principale: {e}")
-=======
+
 
 def avvia_sistema():
     """
@@ -201,4 +199,4 @@ def avvia_sistema():
 
 if __name__ == "__main__":
     avvia_sistema()
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
