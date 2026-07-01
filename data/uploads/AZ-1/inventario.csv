@@ -1,0 +1,252 @@
+CONTROLLARE CHE: Sintassi SQLAlchemy: Se stai usando SQLAlchemy (per farlo girare su Render/Postgres), devi cambiare cursor = conn.cursor() e cursor.execute(...) con conn.execute(text(...)), altrimenti il codice si bloccherà.
+
+/tmp/rgd_uploads
+
+engine.settori.py
+reparti_settori.py
+reparti_engine.py
+warroom_engine.py
+
+csv
+ID_Asset,Nome_Componente,Quantita,Costo_Unitario,Lead_Time_Giorni,Affidabilita_Fornitore
+1,Sensore Alfa,150,45.50,5,0.98
+2,Modulo Beta,85,120.00,12,0.85
+3,Cavo Gamma,500,5.20,3,0.95
+4,Processore Delta,40,350.00,20,0.70
+
+
+ DEVO FAR ANALIZZARE LA DIFFERRENZA DI UN FILE CHE NON MI CONVINCE contrllare 4 gg fa ESEGUI IMPORTAZIONE MASSIVA IL 5 GIUGNO ALLE 6.35
+
+
+9+93ByYE..mCxvF
+
+postgresql://postgres:9+93ByYE..mCxvF@db.byzyyjbfjmvymgkbitcs.supabase.co:5432/postgres
+
+
+
+
+python -c "import psycopg2; conn = psycopg2.connect('postgresql://postgres.itqjupaxatvsnwbtbeiv:RGD-Alpha-2025@aws-0-eu-central-1.pooler.supabase.com:6543/postgres'); cur = conn.cursor(); cur.execute(\"UPDATE users SET is_active = True, role = 'admin' WHERE email = 'nancydc82@yahoo.it';\"); conn.commit(); cur.close(); conn.close(); print('ALLINEAMENTO COMPLETATO')"
+
+
+
+Controlla scrupolosamente e utilizza le tue analisi per la conferma finale di questo codice se va bene o cosa non va bene e come sistemarlo (Ifile che devi autorizzare per poter caricare i file del cliente sia che tramite collegamenteo sistema che con caricamento file devo essere tutti quelli che si usano per lavoro office che :
+from ingestor import IngestoreDati
+
+def test_caricamento_legacy():
+    ingestore = IngestoreDati()
+    
+    file_da_caricare = "test_legacy.csv"
+    id_azienda_test = "AZ-TEST-01"
+
+    print(f"--- Avvio Importazione Legacy da: {file_da_caricare} ---")
+    
+    # Eseguiamo l'elaborazione
+    import pandas as pd
+    import streamlit as st
+    try:
+        if file_da_caricare.name.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_da_caricare)
+        else:
+            df = pd.read_csv(file_da_caricare, sep=None, engine='python')
+        if df.empty:
+            st.error("⚠️ Il file è vuoto.")
+            return
+        st.success("✅ File caricato correttamente.")
+        # Se il tuo ingestore ha una funzione per elaborare il dataframe usa quella, 
+        # altrimenti converti il dataframe in lista per la tua logica successiva:
+        lista_asset = df.to_dict('records') 
+    except Exception as e:
+        st.error(f"❌ Errore nel formato file: {e}")
+        return
+
+    # Verifichiamo se la lista contiene qualcosa
+    if not lista_asset:
+        print("⚠️ Nessun asset creato. Verifica il contenuto del file CSV.")
+        return
+
+    print("\n--- Riepilogo Oggetti Creati in Memoria ---")
+    for asset in lista_asset:
+        # Recupero sicuro degli attributi (usiamo i nomi reali scoperti dai log)
+        nome = getattr(asset, 'nome', 'N/D')
+        valore = getattr(asset, 'affidabilita', 'N/D')
+        rischio = getattr(asset, 'rischio', 'N/D')
+        data_effettiva = getattr(asset, 'data_rilevazione', 'Non definita')
+        
+        print(f"Asset: {nome} | Affidabilità: {valore} | Rischio: {rischio} | Data: {data_effettiva}")
+
+if __name__ == "__main__":
+    test_caricamento_legacy()
+
+
+
+osa abbiamo inserito: Un blocco di codice che usa pandas (pd.read_excel e pd.read_csv).
+QUALE SAREBBE QUESTO CODICE E DOVE SI ISERISCE?
+
+A QUESTA PARTE: Risultato: Il cliente può caricare qualsiasi formato senza che il sistema si blocchi o restituisca "Nessun asset creato".
+NO ASSOLUTAMWENTE I DOCUMENTI CHE PUO E DEVE CARICARE SONO QUELLI CHE IL NOSTRO SISTEMA PUO RICONOSCERE E SONO :
+Tipo di Documento,Standard Microsoft (Più diffuso),Standard Open Source,Standard Adobe (Universale)
+Testo / Lettere / Contratti,.docx (o il vecchio .doc),.odt,.pdf (non modificabile direttamente)
+Fogli di calcolo / Budget,".xlsx (o il vecchio .xls, o .csv per dati grezzi)",.ods,N/A
+Presentazioni / Slide,.pptx (o .ppt),.odp,N/A
+Dunque il nostro sistema in base al documento che carica il cliente con uno di questi o tutti questi tipi usa il nostro sistema è addestrato a leggere ogni tipo ed estrarre le informazioni necessarie per l'esecuzioni e risultati che il nostorporgetto esegue.
+Se il formato e finto o non consonon ci sono delle eccezioni ovvero scritte aggiuntive a mano di modifiche che a sua volta prima di essere autorizzata come informazione aggiuntiva deve notificare il cliente che nel sistema di caricamento verra notificato che il file ccaricato e stato modificato con manovra manuale scritta aggiunta e che ha richiesto la conferma a chi caricasse il file se o non accettare
+ 
+Cosa abbiamo inserito:
+-Dove esattaemnte? "La connessione psycopg2.connect con le tue credenziali professionali."
+-Quali spunte e dove? "Il comando st.data_editor, che crea la tabella interattiva con le spunte."
+-La query SQL UPDATE users SET is_active = ... legata al pulsante di conferma.  dove? Solo possibile attivare e non disattivare ci deve essere anche l'opposto ma rimane semmpre nella cronologia. E deve essere possibile pure per il cliente cancellare il caricamento di un file ma rimane sempre nello storico  dei caricamenti con una X di essere stata cancellata ma si vede lo stesso
+QUi dobbiamo avvisare i clienti che per privicy e protezione visto che sono dati sensibili e RGandja non ne deve mai rispondere per aver compromesso o manomesso file quest informazioni di tutto quello che avviene rimane nello storico per tutela per il tempo necessario di legge per prova.
+
+Risultato: Hai smesso di usare il terminale per gestire gli utenti. Ora vedi i nuovi registrati sul sito e li attivi con un click.
+bisogna creare una notifica che mi avvisi del nuovo cliente richiesta di registrazione cosi so che devo verificare chi sia e attivare.
+
+
+DOcumenti che si usanno:
+
+Tipo di Documento,Standard Microsoft (Più diffuso),Standard Open Source,Standard Adobe (Universale)
+Testo / Lettere / Contratti,.docx (o il vecchio .doc),.odt,.pdf (non modificabile direttamente)
+Fogli di calcolo / Budget,".xlsx (o il vecchio .xls, o .csv per dati grezzi)",.ods,N/A
+Presentazioni / Slide,.pptx (o .ppt),.odp,N/A
+
+
+
+from ingestor import IngestoreDati
+
+def test_caricamento_legacy():
+    ingestore = IngestoreDati()
+    
+    file_da_caricare = "test_legacy.csv"
+    id_azienda_test = "AZ-TEST-01"
+
+    print(f"--- Avvio Importazione Legacy da: {file_da_caricare} ---")
+    
+    # Eseguiamo l'elaborazione
+        import pandas as pd
+    import streamlit as st
+    try:
+        if file_da_caricare.name.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_da_caricare)
+        else:
+            df = pd.read_csv(file_da_caricare, sep=None, engine='python')
+        if df.empty:
+            st.error("⚠️ Il file è vuoto.")
+            return
+        st.success("✅ File caricato correttamente.")
+        # Se il tuo ingestore ha una funzione per elaborare il dataframe usa quella, 
+        # altrimenti converti il dataframe in lista per la tua logica successiva:
+        lista_asset = df.to_dict('records') 
+    except Exception as e:
+        st.error(f"❌ Errore nel formato file: {e}")
+        return
+
+    # Verifichiamo se la lista contiene qualcosa
+    if not lista_asset:
+        print("⚠️ Nessun asset creato. Verifica il contenuto del file CSV.")
+        return
+
+    print("\n--- Riepilogo Oggetti Creati in Memoria ---")
+    for asset in lista_asset:
+        # Recupero sicuro degli attributi (usiamo i nomi reali scoperti dai log)
+        nome = getattr(asset, 'nome', 'N/D')
+        valore = getattr(asset, 'affidabilita', 'N/D')
+        rischio = getattr(asset, 'rischio', 'N/D')
+        data_effettiva = getattr(asset, 'data_rilevazione', 'Non definita')
+        
+        print(f"Asset: {nome} | Affidabilità: {valore} | Rischio: {rischio} | Data: {data_effettiva}")
+
+if __name__ == "__main__":
+    test_caricamento_legacy()
+
+**************************************************************
+
+paragonato a quello nuovo:
+
+
+py
+import streamlit as st
+import pandas as pd
+import os
+import logging
+from ingestor import IngestoreDati
+
+# Configurazione Logger per tracciabilità Enterprise
+logger = logging.getLogger("RGD-Alpha.Import")
+
+def elabora_caricamento_vip(file_da_caricare, company_id="AZ-TEST-01"):
+    """
+    INGESTORE INTELLIGENTE: Gestisce Microsoft, Adobe, OpenSource e rileva manomissioni.
+    """
+    # 1. ANALISI ESTENSIONE
+    nome_file = getattr(file_da_caricare, 'name', str(file_da_caricare))
+    estensione = os.path.splitext(nome_file)[1].lower()
+    
+    FORMATI_TESTO = ['.docx', '.doc', '.odt', '.pdf']
+    FORMATI_DATI = ['.xlsx', '.xls', '.csv', '.ods']
+    FORMATI_SLIDE = ['.pptx', '.ppt', '.odp']
+    TUTTI_FORMATI = FORMATI_TESTO + FORMATI_DATI + FORMATI_SLIDE
+
+    if estensione not in TUTTI_FORMATI:
+        st.error(f"❌ Formato '{estensione}' non supportato. Carica Standard Microsoft, OpenSource o PDF.")
+        return None
+
+    # 2. CONTROLLO INTEGRITÀ (Manomissioni Manuali)
+    scritte_manuali = False # Logica integrabile dal core engine
+    if scritte_manuali:
+        st.warning("⚠️ ATTENZIONE: Rilevate modifiche manuali nel documento.")
+        if not st.checkbox("Accetto le modifiche manuali e procedo.", key="conf_manual"):
+            return None
+
+    # 3. ESTRAZIONE DATI
+    try:
+        st.info(f"🔍 Analisi '{nome_file}' in corso...")
+        
+        # Se è un foglio di calcolo, usiamo pandas
+        if estensione in FORMATI_DATI:
+            if estensione == '.csv':
+                df = pd.read_csv(file_da_caricare, sep=None, engine='python')
+            else:
+                df = pd.read_excel(file_da_caricare)
+            
+            if df.empty:
+                st.error("⚠️ Il file è vuoto.")
+                return None
+                
+            st.success("✅ Estrazione dati completata.")
+            return df.to_dict('records')
+            
+        # Per PDF/DOCX qui si agganciano le funzioni di ingestor.py
+        return {"status": "success", "msg": "Documento inviato all'analisi testuale."}
+
+    except Exception as e:
+        st.error(f"❌ Errore critico: {e}")
+        return None
+
+def test_caricamento_legacy():
+    """Funzione per test offline da terminale."""
+    file_test = "test_legacy.csv"
+    print(f"--- Avvio Test Legacy: {file_test} ---")
+    
+    # Simuliamo l'oggetto file per il test
+    class MockFile:
+        def __init__(self, name): self.name = name
+    
+    risultato = elabora_caricamento_vip(MockFile(file_test))
+    if risultato:
+        print(f"✅ Successo: Creati {len(risultato)} oggetti in memoria.")
+        for asset in risultato[:3]: # Mostra i primi 3
+            print(f"Asset: {asset.get('nome', 'N/D')} | Rischio: {asset.get('rischio', 'N/D')}")
+
+# --- BLOCCO ESECUZIONE (Sito o Terminale) ---
+if __name__ == "__main__":
+    if st.runtime.exists():
+        # Siamo sul sito
+        st.title("🚀 Ingestore Strategico RGD-Alpha")
+        file_input = st.file_uploader("Carica Documento VIP", type=None)
+        if file_input:
+            dati = elabora_caricamento_vip(file_input)
+            if dati:
+                st.session_state['dati_pronti'] = True
+    else:
+        # Siamo nel terminale di VS Code
+        test_caricamento_legacy()
+
