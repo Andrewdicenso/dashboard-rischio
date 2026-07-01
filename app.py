@@ -134,29 +134,29 @@ if not st.session_state.autenticato:
 
     st.stop()
 
-# =========================
-#   SESSIONE ATTIVA
-# =========================
+# =========================================================
+#   NAVIGAZIONE SIDEBAR (POSIZIONARE IN ALTO NEL FILE)
+# =========================================================
 user_id = st.session_state.user_id
 azienda = st.session_state.azienda
 ruolo = st.session_state.ruolo
 is_admin = (ruolo == "admin")
 
-# Sidebar di controllo e navigazione
-st.sidebar.title("🛡️ RGD-ALPHA")
-st.sidebar.write(f"Operatore: **{azienda}**")
-st.sidebar.write(f"Ruolo: **{'ADMIN' if is_admin else 'USER'}**")
-
-if is_admin:
-    menu = ["🕵️ Centrale Admin", "📊 War Room Strategica", "📜 Archivio Storico"]
-else:
-    menu = ["📊 War Room Strategica", "📜 Archivio Storico"]
-
-scelta = st.sidebar.radio("Navigazione", menu)
-
-st.sidebar.markdown("---")
-if st.sidebar.button("Logout"):
-    logout_utente()
+with st.sidebar:
+    st.title("🛡️ RGD-ALPHA")
+    st.write(f"Operatore: **{azienda}**")
+    
+    # Definiamo il menu
+    menu = ["🏠 Home", "📊 War Room Strategica", "📜 Archivio Storico"]
+    if is_admin: 
+        menu.insert(1, "🕵️ Centrale Admin")
+    
+    # Questa riga DEVE stare sopra i blocchi 'if scelta =='
+    scelta = st.radio("Navigazione", menu)
+    
+    st.markdown("---")
+    if st.button("Logout"): 
+        logout_utente()
 
 # =========================================================
 #   WAR ROOM STRATEGICA (VERSIONE ENTERPRISE INTEGRATA)
@@ -356,22 +356,6 @@ if not st.session_state.autenticato:
         if st.button("Registrati"):
             registra_nuovo_utente(e_reg, p_reg, c_reg)
     st.stop()
-
-# =========================
-#   NAVIGAZIONE SIDEBAR
-# =========================
-user_id = st.session_state.user_id
-azienda = st.session_state.azienda
-ruolo = st.session_state.ruolo
-is_admin = (ruolo == "admin")
-
-st.sidebar.title("🛡️ RGD-ALPHA")
-st.sidebar.write(f"Operatore: **{azienda}**")
-menu = ["📊 War Room Strategica", "📜 Archivio Storico"]
-if is_admin: menu.insert(0, "🕵️ Centrale Admin")
-scelta = st.sidebar.radio("Navigazione", menu)
-
-if st.sidebar.button("Logout"): logout_utente()
 
 # =========================
 #   CENTRALE ADMIN
