@@ -31,6 +31,10 @@ st.set_page_config(
     page_icon="🛡️"
 )
 
+# Inizializzazione stato Protocollo RGD-Alpha
+if "analisi_eseguita" not in st.session_state:
+    st.session_state.analisi_eseguita = False
+
 inizializza_sessione()
 
 # =========================
@@ -177,6 +181,15 @@ if scelta == "📊 War Room Strategica":
                     st.error("⚠️ File non valido o vuoto.")
                 else:
                     engine = DataGateway()
+                    # ... (qui tieni il resto del tuo codice che elabora i dati e calcola i KPI) ...
+                    status.update(label="Analisi completata!", state="complete")
+
+                    # --- BLOCCO PROTOCOLLO RGD-ALPHA ---
+                    st.write("---")
+                    with st.expander("✅ Protocollo RGD-Alpha...", expanded=st.session_state.analisi_eseguita):
+                        if st.button("🚀 ESEGUI ANALISI STRATEGICA"):
+                            st.session_state.analisi_eseguita = True
+                            st.rerun()
 
                     # 1. Registrazione log caricamento (Audit trail multi-tenant)
                     db.registra_caricamento(user_id, "UNIVERSAL", uploaded_file.name)
