@@ -111,258 +111,158 @@ class DatabaseAziendale:
         except Exception as e:
             logger.error(f"❌ Errore creazione schema: {e}")
 
-    # =========================
-    #   UTENTI / AUTENTICAZIONE
-    # =========================
+# =========================================================
+#   MODULO UTENTI / AUTENTICAZIONE (VERSIONE PULITA)
+# =========================================================
 
-    def crea_utente(self, email, password, ruolo="user", azienda=None):
-        """
-        Crea un nuovo utente.
-        La password viene hashata internamente con bcrypt.
-        """
-        try:
-            with self._get_conn() as conn:
-                cursor = conn.cursor()
-
-                email_enc = self.vault.encrypt_data(email)
-
-                # HASH SICURO DELLA PASSWORD
-                password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-                # Inserisco utente senza azienda per ottenere l'id
-                cursor.execute("""
-                    INSERT INTO utenti (email, password_hash, ruolo, azienda)
-                    VALUES (?, ?, ?, ?)
-                """, (email_enc, password_hash, ruolo, None))
-                user_id = cursor.lastrowid
-
-                # Se non è stata passata un'azienda, ne genero una
-                if azienda is None:
-                    azienda = f"AZ-{user_id}"
-
-                azienda_enc = self.vault.encrypt_data(azienda)
-
-                # Aggiorno l'azienda dell'utente
-                cursor.execute("""
-                    UPDATE utenti SET azienda = ?
-                    WHERE id = ?
-                """, (azienda_enc, user_id))
-
-    def crea_utente(self, email, password, ruolo="user", azienda=None):
-        try:
-            with self._get_conn() as conn:
-                cursor = conn.cursor()
-                email_enc = self.vault.encrypt_data(email)
-                password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-                cursor.execute("INSERT INTO utenti (email, password_hash, ruolo, azienda) VALUES (?, ?, ?, ?)", 
-                             (email_enc, password_hash, ruolo, None))
-                user_id = cursor.lastrowid
-                if azienda is None: azienda = f"AZ-{user_id}"
-                azienda_enc = self.vault.encrypt_data(azienda)
-                cursor.execute("UPDATE utenti SET azienda = ? WHERE id = ?", (azienda_enc, user_id))
-                conn.commit()
-                return user_id
-        except Exception as e:
-            logger.error(f"Errore creazione utente: {e}")
-            raise
-
-    def get_utente_by_email(self, email):
-        """Recupera un utente a partire dall'email in chiaro."""
-        try:
+def crea_utente(self, email, password, ruolo="user", azienda=None):
+    """Crea un utente, gestisce la crittografia e l'assegnazione azienda."""
+    try:
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            
+            # 1. Crittografia e Hashing
             email_enc = self.vault.encrypt_data(email)
+            password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-            with self._get_conn() as conn:
-                cursor = conn.execute("""
-                    SELECT id, email, password_hash, ruolo, azienda
-                    FROM utenti WHERE email = ?
-                """, (email_enc,))
-                row = cursor.fetchone()
+            # 2. Inserimento iniziale (senza azienda per generare l'ID)
+            cursor.execute("""
+                INSERT INTO utenti (email, password_hash, ruolo, azienda) 
+                VALUES (?, ?, ?, ?)
+            """, (email_enc, password_hash, ruolo, None))
+            user_id = cursor.lastrowid
 
-            if not row:
-                return None
-
-            return {
-                "id": row[0],
-                "email": self.vault.decrypt_data(row[1]),
-                "password_hash": row[2],
-                "ruolo": row[3],
-                "azienda": self.vault.decrypt_data(row[4]) if row[4] else None
-            }
-
-            with self._get_conn() as conn:
-                cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti")
-                rows = cursor.fetchall()
-            for row in rows:
-                try:
-                    email_dec = self.vault.decrypt_data(row[1])
-                    if isinstance(email_dec, bytes): email_dec = email_dec.decode()
-                    if email_dec.lower() == email.lower():
-                        azienda_dec = self.vault.decrypt_data(row[4]) if row[4] else None
-                        if isinstance(azienda_dec, bytes): azienda_dec = azienda_dec.decode()
-                        return {"id": row[0], "email": email_dec, "password_hash": row[2], "ruolo": row[3], "azienda": azienda_dec}
-                except: continue
-            return None
-        except Exception as e:
-            return None
-
-    def get_utente_by_id(self, user_id: int):
-        """Recupera un utente a partire dall'id."""
-        try:
-            with self._get_conn() as conn:
-                cursor = conn.execute("""
-                    SELECT id, email, password_hash, ruolo, azienda
-                    FROM utenti WHERE id = ?
-                """, (user_id,))
-                row = cursor.fetchone()
-
-            if not row:
-                return None
-
-            return {
-                "id": row[0],
-                "email": self.vault.decrypt_data(row[1]),
-                "password_hash": row[2],
-                "ruolo": row[3],
-                "azienda": self.vault.decrypt_data(row[4]) if row[4] else None
-            }
-        except Exception as e:
-            logger.error(f"Errore recupero utente by id: {e}")
-            return None
-
-    def get_tutti_gli_utenti(self):
-        """Ritorna tutti gli utenti (per Admin Panel)."""
-        try:
-            with self._get_conn() as conn:
-                df = pd.read_sql_query("SELECT * FROM utenti", conn)
-
-        try:
-            with self._get_conn() as conn:
-                cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti WHERE id = ?", (user_id,))
-                row = cursor.fetchone()
-            if not row: return None
-            email_dec = self.vault.decrypt_data(row[1])
-            if isinstance(email_dec, bytes): email_dec = email_dec.decode()
-            azienda_dec = self.vault.decrypt_data(row[4]) if row[4] else None
-            if isinstance(azienda_dec, bytes): azienda_dec = azienda_dec.decode()
-            return {"id": row[0], "email": email_dec, "password_hash": row[2], "ruolo": row[3], "azienda": azienda_dec}
-        except: return None
-
-    # --- FUNZIONI ADMIN PER SBLOCCARE IL PANNELLO ---
-    def supervisione_admin_metriche_globali(self):
-        try:
-            with self._get_conn() as conn:
-                df = pd.read_sql_query("SELECT email, ruolo, azienda, data_creazione FROM utenti", conn)
-                if df.empty: return df
-                df["email"] = df["email"].apply(lambda x: self.vault.decrypt_data(x).decode() if isinstance(self.vault.decrypt_data(x), bytes) else self.vault.decrypt_data(x))
-                df["azienda"] = df["azienda"].apply(lambda x: self.vault.decrypt_data(x).decode() if isinstance(self.vault.decrypt_data(x), bytes) else self.vault.decrypt_data(x))
-                return df
-        except: return pd.DataFrame()
-            df["email"] = df["email"].apply(self.vault.decrypt_data)
-            df["azienda"] = df["azienda"].apply(self.vault.decrypt_data)
-            return df
-        except Exception as e:
-            logger.error(f"Errore recupero utenti: {e}")
-            return pd.DataFrame()
-
-    # =========================
-    #   ASSET / LOGICHE AZIENDALI
-    # =========================
-
-    def get_azienda_per_utente(self, user_id: int):
-        utente = self.get_utente_by_id(user_id)
-        if not utente:
-            return None
-        return utente["azienda"]
-
-    def salva_asset(self, user_id, nome_asset, rischio, **kwargs):
-        try:
-            azienda = self.get_azienda_per_utente(user_id)
+            # 3. Gestione Azienda (Se manca, usa l'ID generato)
             if azienda is None:
-                raise ValueError("Nessuna azienda associata all'utente.")
+                azienda = f"AZ-{user_id}"
+            azienda_enc = self.vault.encrypt_data(azienda)
 
-            company_id_secure = self.vault.encrypt_data(str(azienda))
-            nome_secure = self.vault.encrypt_data(str(nome_asset))
+            # 4. Aggiornamento finale con azienda criptata
+            cursor.execute("UPDATE utenti SET azienda = ? WHERE id = ?", (azienda_enc, user_id))
+            conn.commit()
+            return user_id
+    except Exception as e:
+        logger.error(f"❌ Errore creazione utente: {e}")
+        return None
 
-            tipo_asset = kwargs.get('tipo', 'GenericAsset')
-            momentum = kwargs.get('momentum', 'Stabile')
-            volatilita = kwargs.get('volatilita', 0.0)
-            valore_extra = kwargs.get('valore_extra', 0.0)
+def get_utente_by_email(self, email):
+    """Recupera l'utente decriptando i dati per il confronto."""
+    try:
+        with self._get_conn() as conn:
+            # Recuperiamo tutti gli utenti per confrontare l'email decriptata
+            # Nota: Per database enormi si usa un hash deterministico come indice
+            cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti")
+            rows = cursor.fetchall()
 
-            with self._get_conn() as conn:
-                conn.execute("""
-                    INSERT INTO asset_logs (
-                        user_id, company_id, nome, tipo, rischio, momentum, volatilita, valore_extra
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    user_id,
-                    company_id_secure,
-                    nome_secure,
-                    tipo_asset,
-                    rischio,
-                    momentum,
-                    volatilita,
-                    valore_extra
-                ))
-        except Exception as e:
-            logger.error(f"❌ Errore salvataggio asset {nome_asset}: {e}")
+        for row in rows:
+            try:
+                email_dec = self.vault.decrypt_data(row[1])
+                if isinstance(email_dec, bytes): email_dec = email_dec.decode()
+                
+                if email_dec.lower() == email.lower():
+                    azienda_dec = self.vault.decrypt_data(row[4]) if row[4] else None
+                    if isinstance(azienda_dec, bytes): azienda_dec = azienda_dec.decode()
+                    
+                    return {
+                        "id": row[0],
+                        "email": email_dec,
+                        "password_hash": row[2],
+                        "ruolo": row[3],
+                        "azienda": azienda_dec
+                    }
+            except:
+                continue
+        return None
+    except Exception as e:
+        logger.error(f"❌ Errore recupero utente by email: {e}")
+        return None
 
-    def recupera_asset_per_utente(self, user_id: int):
-        try:
-            with self._get_conn() as conn:
-                df = pd.read_sql_query(
-                    "SELECT * FROM asset_logs WHERE user_id = ? ORDER BY id DESC",
-                    conn,
-                    params=(user_id,)
-                )
+def get_utente_by_id(self, user_id):
+    """Recupera e decripta un utente tramite il suo ID."""
+    try:
+        with self._get_conn() as conn:
+            cursor = conn.execute("SELECT id, email, password_hash, ruolo, azienda FROM utenti WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+        
+        if not row: return None
 
-            if df.empty:
-=======
-    def recupera_attivita_globale(self, solo_admin=False):
-        try:
-            with self._get_conn() as conn:
-                df = pd.read_sql_query("SELECT * FROM asset_logs", conn)
-                return df
-        except: return pd.DataFrame()
-            df['company_id'] = df['company_id'].apply(self.vault.decrypt_data)
-            df['nome'] = df['nome'].apply(self.vault.decrypt_data)
-            return df
-        except Exception as e:
-            logger.error(f"Errore recupero asset per utente: {e}")
-            return pd.DataFrame()
+        email_dec = self.vault.decrypt_data(row[1])
+        if isinstance(email_dec, bytes): email_dec = email_dec.decode()
+        
+        azienda_dec = self.vault.decrypt_data(row[4]) if row[4] else None
+        if isinstance(azienda_dec, bytes): azienda_dec = azienda_dec.decode()
 
-    def recupera_asset_per_azienda(self, user_id: int):
-        return self.recupera_asset_per_utente(user_id)
+        return {
+            "id": row[0], "email": email_dec, "password_hash": row[2], 
+            "ruolo": row[3], "azienda": azienda_dec
+        }
+    except Exception as e:
+        return None
 
-    def recupera_attivita_globale(self, solo_admin=False, user_id=None):
-        """
-        Recupera l'attività. Se solo_admin=True, estrae tutti i record
-        del sistema permettendo la supervisione incrociata di tutte le aziende.
-        """
-        try:
-            with self._get_conn() as conn:
-                if solo_admin:
-                    df = pd.read_sql_query(
-                        "SELECT id, user_id, company_id, nome, rischio, timestamp FROM asset_logs ORDER BY id DESC",
-                        conn
-                    )
-                else:
-                    if user_id is None:
-                        return pd.DataFrame()
-                    df = pd.read_sql_query(
-                        "SELECT id, user_id, company_id, nome, rischio, timestamp FROM asset_logs WHERE user_id = ? ORDER BY id DESC",
-                        conn,
-                        params=(user_id,)
-                    )
+# =========================================================
+#   MODULO ASSET / LOGICHE AZIENDALI
+# =========================================================
 
-            if not df.empty:
-                df['company_id'] = df['company_id'].apply(self.vault.decrypt_data)
-                df['nome'] = df['nome'].apply(self.vault.decrypt_data)
+def salva_asset(self, user_id, nome_asset, rischio, **kwargs):
+    """Salva un log asset garantendo la protezione dei dati aziendali."""
+    try:
+        utente = self.get_utente_by_id(user_id)
+        if not utente or not utente["azienda"]:
+            raise ValueError("Utente o Azienda non validi.")
 
-            return df
-        except Exception as e:
-            logger.error(f"Errore recupero log globali: {e}")
-            return pd.DataFrame()
+        # Criptiamo i dati identificativi
+        company_id_secure = self.vault.encrypt_data(str(utente["azienda"]))
+        nome_secure = self.vault.encrypt_data(str(nome_asset))
+
+        with self._get_conn() as conn:
+            conn.execute("""
+                INSERT INTO asset_logs (
+                    user_id, company_id, nome, tipo, rischio, momentum, volatilita, valore_extra
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_id, company_id_secure, nome_secure,
+                kwargs.get('tipo', 'GenericAsset'),
+                rischio,
+                kwargs.get('momentum', 0.0),
+                kwargs.get('volatilita', 0.0),
+                kwargs.get('valore_extra', 0.0)
+            ))
+            conn.commit()
+    except Exception as e:
+        logger.error(f"❌ Errore salvataggio asset {nome_asset}: {e}")
+
+def recupera_asset_per_utente(self, user_id):
+    """Recupera la cronologia asset decriptando i nomi per la War Room."""
+    try:
+        with self._get_conn() as conn:
+            df = pd.read_sql_query("SELECT * FROM asset_logs WHERE user_id = ?", conn, params=(user_id,))
+        
+        if df.empty: return df
+
+        # Decriptiamo i nomi degli asset per la visualizzazione
+        df['nome'] = df['nome'].apply(lambda x: self.vault.decrypt_data(x).decode() if x else "N/D")
+        return df
+    except Exception as e:
+        logger.error(f"❌ Errore recupero asset: {e}")
+        return pd.DataFrame()
+
+# =========================================================
+#   ADMIN / SUPERVISIONE GLOBALE
+# =========================================================
+
+def supervisione_admin_metriche_globali(self):
+    """Vista Admin: decripta email e aziende per il monitoraggio."""
+    try:
+        with self._get_conn() as conn:
+            df = pd.read_sql_query("SELECT email, ruolo, azienda, data_creazione FROM utenti", conn)
+        
+        if df.empty: return df
+
+        df["email"] = df["email"].apply(lambda x: self.vault.decrypt_data(x).decode() if x else "N/D")
+        df["azienda"] = df["azienda"].apply(lambda x: self.vault.decrypt_data(x).decode() if x else "N/D")
+        return df
+    except Exception as e:
+        return pd.DataFrame()
 
     # ==========================================
     #   CALCOLO MATEMATICO CENTRALIZZATO KPI
@@ -561,7 +461,7 @@ class DatabaseAziendale:
         except Exception as e:
             logger.error(f"Errore recupero log caricamenti admin: {e}")
             return pd.DataFrame()
-=======
+
     def recupera_log_caricamenti_admin(self):
         try:
             with self._get_conn() as conn:
@@ -615,4 +515,4 @@ class DatabaseAziendale:
             }
         except:
             return {"solidita": 0, "impatto_30gg": "ERRORE", "rischio_medio": 0}
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
