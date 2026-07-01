@@ -33,7 +33,7 @@ st.set_page_config(
 
 # Inizializzazione stato Protocollo RGD-Alpha
 if "analisi_eseguita" not in st.session_state:
-    st.session_state.analisi_eseguita = False
+    st.session_state.analisi_eseguita = true
 
 inizializza_sessione()
 
