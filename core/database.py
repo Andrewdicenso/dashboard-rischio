@@ -10,7 +10,7 @@ logger = logging.getLogger("RGD-Alpha.Database")
 
 
 class DatabaseAziendale:
-<<<<<<< HEAD
+
     """
     Architettura di Persistenza Enterprise Criptata RGD-ALPHA.
     Sincronizzato con SecureVault per la cifratura dei dati a riposo.
@@ -18,30 +18,27 @@ class DatabaseAziendale:
     Include funzioni analitiche avanzate per KPI e pannello Admin di supervisione.
     """
 
-=======
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
     def __init__(self, db_folder="data/db", db_name="azienda.db"):
         try:
             os.makedirs(db_folder, exist_ok=True)
             self.db_path = os.path.join(db_folder, db_name)
-<<<<<<< HEAD
+
 
             # Inizializzazione Vault (Auto-configurato con vault.key)
             self.vault = SecureVault()
 
-=======
+
             self.vault = SecureVault()
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
             self.crea_tabelle()
             logger.info(f"🛡️ Database RGD-Alpha pronto: {self.db_path}")
         except Exception as e:
             logger.critical(f"❌ Fallimento database: {e}")
             raise
 
-<<<<<<< HEAD
+
     # Connessione centralizzata
-=======
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
+
     def _get_conn(self):
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -49,7 +46,6 @@ class DatabaseAziendale:
     #   CREAZIONE TABELLE
     # =========================
     def crea_tabelle(self):
-<<<<<<< HEAD
         """Inizializza lo schema garantendo l'integrità dei dati criptati e l'isolamento per utente."""
         try:
             with self._get_conn() as conn:
@@ -57,11 +53,6 @@ class DatabaseAziendale:
 
                 # 1. Tabella Utenti (MASTER)
                 cursor.execute("""
-=======
-        try:
-            with self._get_conn() as conn:
-                conn.execute("""
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
                     CREATE TABLE IF NOT EXISTS utenti (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         email TEXT UNIQUE NOT NULL,
@@ -71,13 +62,9 @@ class DatabaseAziendale:
                         data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-<<<<<<< HEAD
-
+                
                 # 2. Tabella Asset Logs
                 cursor.execute("""
-=======
-                conn.execute("""
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
                     CREATE TABLE IF NOT EXISTS asset_logs (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         user_id INTEGER NOT NULL,
@@ -86,8 +73,7 @@ class DatabaseAziendale:
                         tipo TEXT,
                         rischio REAL NOT NULL,
                         momentum TEXT,
-                        volatilita REAL,
-<<<<<<< HEAD
+                        volalita REAL,
                         valore_extra REAL,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (user_id) REFERENCES utenti(id)
@@ -120,26 +106,11 @@ class DatabaseAziendale:
                     )
                 """)
 
-=======
-                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )
-                """)
-                conn.execute("""
-                    CREATE TABLE IF NOT EXISTS log_caricamenti (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                        user_id INTEGER, 
-                        azienda TEXT, 
-                        contesto TEXT, 
-                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, 
-                        nome_file TEXT
-                    )
-                """)
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
-                conn.commit()
+            conn.commit()
+                
         except Exception as e:
             logger.error(f"❌ Errore creazione schema: {e}")
 
-<<<<<<< HEAD
     # =========================
     #   UTENTI / AUTENTICAZIONE
     # =========================
@@ -190,7 +161,6 @@ class DatabaseAziendale:
                 if azienda is None: azienda = f"AZ-{user_id}"
                 azienda_enc = self.vault.encrypt_data(azienda)
                 cursor.execute("UPDATE utenti SET azienda = ? WHERE id = ?", (azienda_enc, user_id))
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
                 conn.commit()
                 return user_id
         except Exception as e:
@@ -200,7 +170,6 @@ class DatabaseAziendale:
     def get_utente_by_email(self, email):
         """Recupera un utente a partire dall'email in chiaro."""
         try:
-<<<<<<< HEAD
             email_enc = self.vault.encrypt_data(email)
 
             with self._get_conn() as conn:
@@ -234,12 +203,10 @@ class DatabaseAziendale:
                         return {"id": row[0], "email": email_dec, "password_hash": row[2], "ruolo": row[3], "azienda": azienda_dec}
                 except: continue
             return None
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
         except Exception as e:
             return None
 
     def get_utente_by_id(self, user_id: int):
-<<<<<<< HEAD
         """Recupera un utente a partire dall'id."""
         try:
             with self._get_conn() as conn:
@@ -280,7 +247,6 @@ class DatabaseAziendale:
             if isinstance(azienda_dec, bytes): azienda_dec = azienda_dec.decode()
             return {"id": row[0], "email": email_dec, "password_hash": row[2], "ruolo": row[3], "azienda": azienda_dec}
         except: return None
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
 
     # --- FUNZIONI ADMIN PER SBLOCCARE IL PANNELLO ---
     def supervisione_admin_metriche_globali(self):
@@ -292,8 +258,6 @@ class DatabaseAziendale:
                 df["azienda"] = df["azienda"].apply(lambda x: self.vault.decrypt_data(x).decode() if isinstance(self.vault.decrypt_data(x), bytes) else self.vault.decrypt_data(x))
                 return df
         except: return pd.DataFrame()
-
-<<<<<<< HEAD
             df["email"] = df["email"].apply(self.vault.decrypt_data)
             df["azienda"] = df["azienda"].apply(self.vault.decrypt_data)
             return df
@@ -359,11 +323,8 @@ class DatabaseAziendale:
         try:
             with self._get_conn() as conn:
                 df = pd.read_sql_query("SELECT * FROM asset_logs", conn)
->>>>>>> bcab1954171fcee24d307cf15bb8f449159e2707
                 return df
         except: return pd.DataFrame()
-
-<<<<<<< HEAD
             df['company_id'] = df['company_id'].apply(self.vault.decrypt_data)
             df['nome'] = df['nome'].apply(self.vault.decrypt_data)
             return df
